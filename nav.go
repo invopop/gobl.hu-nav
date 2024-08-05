@@ -1,13 +1,9 @@
 package nav
 
 import (
-	"encoding/json"
 	"encoding/xml"
 	"errors"
-	"fmt"
-	"os"
 
-	"github.com/invopop/gobl"
 	"github.com/invopop/gobl/bill"
 )
 
@@ -17,7 +13,8 @@ xmlns:common="http://schemas.nav.gov.hu/NTCA/1.0/common" xmlns:base="http://sche
 
 // Standard error responses.
 var (
-	ErrNotHungarian = newValidationError("only hungarian invoices are supported")
+	ErrNotHungarian   = newValidationError("only hungarian invoices are supported")
+	ErrNoExchangeRate = newValidationError("no exchange rate to HUF found")
 )
 
 // ValidationError is a simple wrapper around validation errors (that should not be retried) as opposed
@@ -67,7 +64,7 @@ func NewDocument(inv *bill.Invoice) *Document {
 	return d
 }
 
-func main() {
+/*func main() {
 	data, _ := os.ReadFile("invoice-valid.json")
 	fmt.Println(string(data))
 	env := new(gobl.Envelope)
@@ -87,4 +84,4 @@ func main() {
 		panic(err)
 	}
 	fmt.Println(string(output))
-}
+}*/

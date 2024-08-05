@@ -14,7 +14,7 @@ type Invoice struct {
 	//InvoiceLines      InvoiceLines      `xml:"invoiceLines,omitempty"`
 	//ProductFeeSummary ProductFeeSummary `xml:"productFeeSummary,omitempty"`
 
-	//InvoiceSummary *InvoiceSummary `xml:"invoiceSummary"`
+	InvoiceSummary *InvoiceSummary `xml:"invoiceSummary"`
 }
 
 func NewInvoiceMain(inv *bill.Invoice) (*InvoiceMain, error) {
@@ -23,10 +23,15 @@ func NewInvoiceMain(inv *bill.Invoice) (*InvoiceMain, error) {
 		return nil, err
 	}
 
+	invoiceSummary, err := NewInvoiceSummary(inv)
+	if err != nil {
+		return nil, err
+	}
+
 	return &InvoiceMain{
 		Invoice: &Invoice{
-			InvoiceHead: invoiceHead,
-			//InvoiceSummary: NewInvoiceSummary(inv),
+			InvoiceHead:    invoiceHead,
+			InvoiceSummary: invoiceSummary,
 		},
 	}, nil
 }
