@@ -4,7 +4,7 @@ import "github.com/invopop/gobl/bill"
 
 type InvoiceHead struct {
 	SupplierInfo *SupplierInfo `xml:"supplierInfo"`
-	//CustomerInfo             CustomerInfo             `xml:"customerInfo,omitempty"`
+	CustomerInfo *CustomerInfo `xml:"customerInfo,omitempty"`
 	//FiscalRepresentativeInfo FiscalRepresentativeInfo `xml:"fiscalRepresentativeInfo,omitempty"`
 
 	InvoiceDetail *InvoiceDetail `xml:"invoiceDetail"`

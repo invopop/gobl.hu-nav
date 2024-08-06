@@ -2,6 +2,7 @@ package nav
 
 import (
 	"github.com/invopop/gobl/bill"
+	"github.com/invopop/gobl/num"
 	"github.com/invopop/gobl/tax"
 )
 
@@ -15,10 +16,10 @@ type InvoiceSummary struct {
 
 type SummaryNormal struct {
 	SummaryByVatRate    []*SummaryByVatRate `xml:"summaryByVatRate"`
-	InvoiceNetAmount    float64             `xml:"invoiceNetAmount"`
-	InvoiceNetAmountHUF float64             `xml:"invoiceNetAmountHUF"`
-	InvoiceVatAmount    float64             `xml:"invoiceVatAmount"`
-	InvoiceVatAmountHUF float64             `xml:"invoiceVatAmountHUF"`
+	InvoiceNetAmount    string              `xml:"invoiceNetAmount"`
+	InvoiceNetAmountHUF string              `xml:"invoiceNetAmountHUF"`
+	InvoiceVatAmount    string              `xml:"invoiceVatAmount"`
+	InvoiceVatAmountHUF string              `xml:"invoiceVatAmountHUF"`
 }
 
 type SummaryByVatRate struct {
@@ -29,51 +30,57 @@ type SummaryByVatRate struct {
 }
 
 type VatRateNetData struct {
-	VatRateNetAmount    float64 `xml:"vatRateNetAmount"`
-	VatRateNetAmountHUF float64 `xml:"vatRateNetAmountHUF"`
+	VatRateNetAmount    string `xml:"vatRateNetAmount"`
+	VatRateNetAmountHUF string `xml:"vatRateNetAmountHUF"`
 }
 
 type VatRateVatData struct {
-	VatRateVatAmount    float64 `xml:"vatRateVatAmount"`
-	VatRateVatAmountHUF float64 `xml:"vatRateVatAmountHUF"`
+	VatRateVatAmount    string `xml:"vatRateVatAmount"`
+	VatRateVatAmountHUF string `xml:"vatRateVatAmountHUF"`
 }
 
 func newSummaryByVatRate(rate *tax.RateTotal, info *taxInfo, ex float64) *SummaryByVatRate {
 	return &SummaryByVatRate{
 		VatRate: NewVatRate(rate, info),
 		VatRateNetData: &VatRateNetData{
-			VatRateNetAmount:    rate.Base.Float64(),
-			VatRateNetAmountHUF: rate.Base.Float64() * ex,
+			VatRateNetAmount:    rate.Base.Rescale(2).String(),
+			VatRateNetAmountHUF: amountToHUF(rate.Base, ex),
 		},
 		VatRateVatData: &VatRateVatData{
-			VatRateVatAmount:    rate.Amount.Float64(),
-			VatRateVatAmountHUF: rate.Amount.Float64() * ex,
+			VatRateVatAmount:    rate.Amount.Rescale(2).String(),
+			VatRateVatAmountHUF: amountToHUF(rate.Amount, ex),
 		},
 	}
 }
 
 func NewInvoiceSummary(inv *bill.Invoice) (*InvoiceSummary, error) {
 	vat := inv.Totals.Taxes.Category(tax.CategoryVAT)
-	totalVat := 0.0
+	totalVat := num.MakeAmount(0, 5)
 	summaryVat := []*SummaryByVatRate{}
 	taxInfo := newTaxInfo(inv)
 	ex, err := getInvoiceRate(inv)
+
 	if err != nil {
 		return nil, err
 	}
 	for _, rate := range vat.Rates {
 		summaryVat = append(summaryVat, newSummaryByVatRate(rate, taxInfo, ex))
-		totalVat += rate.Amount.Float64()
+		totalVat = totalVat.Add(rate.Amount)
 	}
 
 	return &InvoiceSummary{
 		SummaryNormal: &SummaryNormal{
 			SummaryByVatRate:    summaryVat,
-			InvoiceNetAmount:    inv.Totals.Total.Float64(),
-			InvoiceNetAmountHUF: inv.Totals.Total.Float64() * ex,
-			InvoiceVatAmount:    totalVat,
-			InvoiceVatAmountHUF: totalVat * ex,
+			InvoiceNetAmount:    inv.Totals.Total.Rescale(2).String(),
+			InvoiceNetAmountHUF: amountToHUF(inv.Totals.Total, ex),
+			InvoiceVatAmount:    totalVat.Rescale(2).String(),
+			InvoiceVatAmountHUF: amountToHUF(totalVat, ex),
 		},
 	}, nil
 
+}
+
+func amountToHUF(amount num.Amount, ex float64) string {
+	result := amount.Multiply(num.AmountFromFloat64(ex, 5))
+	return result.Rescale(2).String()
 }

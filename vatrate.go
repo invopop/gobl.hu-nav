@@ -40,6 +40,9 @@ type taxInfo struct {
 
 // NewVatRate creates a new VatRate from a taxid
 func NewVatRate(rate *tax.RateTotal, info *taxInfo) *VatRate {
+	if rate.Key != tax.RateExempt && rate.Key != tax.RateZero {
+		return &VatRate{VatPercentage: rate.Percent.Amount().Float64()}
+	}
 	if rate.Key == tax.RateExempt {
 		if info.outOfScope {
 			// Q: Is there a way in GOBL to access the extension names?
