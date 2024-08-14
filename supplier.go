@@ -12,7 +12,7 @@ type SupplierInfo struct {
 	SupplierName    string   `xml:"supplierName"`
 	SupplierAddress *Address `xml:"supplierAddress"`
 	//SupplierBankAccount  string    `xml:"supplierBankAccount,omitempty"` // Not generally used
-	//IndividualExemption bool `xml:"individualExemption,omitempty"`
+	//IndividualExemption bool `xml:"individualExemption,omitempty"` // Value is "true" if the seller has individual VAT exempt status
 	//ExciseLicenceNum string `xml:"exciseLicenceNum,omitempty"`
 }
 
@@ -21,19 +21,22 @@ func NewSupplierInfo(supplier *org.Party) (*SupplierInfo, error) {
 	if taxId.Country != l10n.HU.Tax() {
 		return nil, ErrNotHungarian
 	}
-	if taxId.Code.String()[8:9] != "5" {
+	taxNumber, groupNumber, err := NewTaxNumber(supplier)
+	if err != nil {
+		return nil, err
+	}
+	if groupNumber != nil {
 		return &SupplierInfo{
-			SupplierTaxNumber: NewTaxNumber(taxId),
-			SupplierName:      supplier.Name,
-			SupplierAddress:   NewAddress(supplier.Addresses[0]),
+			SupplierTaxNumber:    taxNumber,
+			GroupMemberTaxNumber: groupNumber,
+			SupplierName:         supplier.Name,
+			SupplierAddress:      NewAddress(supplier.Addresses[0]),
 		}, nil
 	}
-	groupMemberCode := supplier.Identities[0].Code.String()
 	return &SupplierInfo{
-		SupplierTaxNumber:    NewTaxNumber(taxId),
-		GroupMemberTaxNumber: NewHungarianTaxNumber(groupMemberCode),
-		SupplierName:         supplier.Name,
-		SupplierAddress:      NewAddress(supplier.Addresses[0]),
+		SupplierTaxNumber: taxNumber,
+		SupplierName:      supplier.Name,
+		SupplierAddress:   NewAddress(supplier.Addresses[0]),
 	}, nil
 
 }

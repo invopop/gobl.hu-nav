@@ -1,10 +1,6 @@
 package nav
 
-import (
-	"github.com/invopop/gobl/bill"
-	"github.com/invopop/gobl/regimes/hu"
-	"github.com/invopop/gobl/tax"
-)
+//"github.com/invopop/gobl/regimes/hu"
 
 // Vat Rate may contain exactly one of the 8 possible fields
 type VatRate struct {
@@ -39,7 +35,7 @@ type taxInfo struct {
 }
 
 // NewVatRate creates a new VatRate from a taxid
-func NewVatRate(rate *tax.RateTotal, info *taxInfo) *VatRate {
+/*func NewVatRate(rate *tax.RateTotal, info *taxInfo) *VatRate {
 	if rate.Key != tax.RateExempt && rate.Key != tax.RateZero {
 		return &VatRate{VatPercentage: rate.Percent.Amount().Float64()}
 	}
@@ -93,4 +89,4 @@ func newTaxInfo(inv *bill.Invoice) *taxInfo {
 		}
 	}
 	return info
-}
+}*/

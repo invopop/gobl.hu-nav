@@ -1,7 +1,6 @@
 package nav
 
 import (
-	"github.com/invopop/gobl/bill"
 	"github.com/invopop/gobl/l10n"
 	"github.com/invopop/gobl/org"
 	"github.com/invopop/gobl/tax"
@@ -28,51 +27,48 @@ type CustomerTaxNumber struct {
 	GroupMemberTaxNumber *TaxNumber `xml:"groupMemberTaxNumber,omitempty"`
 }
 
-func NewCustomerInfo(inv *bill.Invoice) *CustomerInfo {
+func NewCustomerInfo(customer *org.Party) (*CustomerInfo, error) {
 
-	customer := inv.Customer
-
-	if inv.Tax.ContainsTag(hu.TagPrivatePerson) {
-		return &CustomerInfo{
-			CustomerVatStatus: "PRIVATE_PERSON",
-			CustomerName:      customer.Name,
-			CustomerAddress:   NewAddress(customer.Addresses[0]),
-		}
-	}
-
-	// If the customer is not a taxable person
-	if customer.TaxID == nil {
+	taxID := customer.TaxID
+	if taxID == nil {
 		return &CustomerInfo{
 			CustomerVatStatus: "OTHER",
 			CustomerName:      customer.Name,
 			CustomerAddress:   NewAddress(customer.Addresses[0]),
-		}
+		}, nil
 	}
-
-	taxID := customer.TaxID
-	group := false
 	status := "OTHER"
 
 	if taxID.Country == l10n.HU.Tax() {
-		status = "DOMESTIC"
-		// One case for group Id and other for simple (Group ID has the 9th character as 5)
-		if taxID.Code.String()[8:9] == "5" {
-			group = true
+		if taxID.Code.String() == "" || (taxID.Code.String()[0:1] == "8" && len(taxID.Code) == 10) {
+			return &CustomerInfo{
+				CustomerVatStatus: "PRIVATE_PERSON",
+				CustomerName:      customer.Name,
+				CustomerAddress:   NewAddress(customer.Addresses[0]),
+			}, nil
 		}
+		status = "DOMESTIC"
+
 	}
+
+	vatData, err := newVatData(customer, status)
+	if err != nil {
+		return nil, err
+	}
+
 	return &CustomerInfo{
 		CustomerVatStatus: status,
-		CustomerVatData:   newVatData(customer, group, status),
+		CustomerVatData:   vatData,
 		CustomerName:      customer.Name,
 		CustomerAddress:   NewAddress(customer.Addresses[0]),
-	}
+	}, nil
 }
 
-func newVatData(customer *org.Party, group bool, status string) *VatData {
+func newVatData(customer *org.Party, status string) (*VatData, error) {
 	if status == "OTHER" {
-		return newOtherVatData(customer.TaxID)
+		return newOtherVatData(customer.TaxID), nil
 	}
-	return newDomesticVatData(customer, group)
+	return newDomesticVatData(customer)
 }
 
 func newOtherVatData(taxID *tax.Identity) *VatData {
@@ -86,26 +82,30 @@ func newOtherVatData(taxID *tax.Identity) *VatData {
 	}
 }
 
-func newDomesticVatData(customer *org.Party, group bool) *VatData {
-	taxID := customer.TaxID
-	if group {
-		groupMemberCode := customer.Identities[0].Code.String()
+func newDomesticVatData(customer *org.Party) (*VatData, error) {
+	taxNumber, groupNumber, err := NewTaxNumber(customer)
+	if err != nil {
+		return nil, err
+	}
+
+	if groupNumber != nil {
 		return &VatData{
 			CustomerTaxNumber: &CustomerTaxNumber{
-				TaxPayerID:           taxID.Code.String()[0:8],
-				VatCode:              taxID.Code.String()[8:9],
-				CountyCode:           taxID.Code.String()[9:11],
-				GroupMemberTaxNumber: NewHungarianTaxNumber(groupMemberCode),
+				TaxPayerID:           taxNumber.TaxPayerID,
+				VatCode:              taxNumber.VatCode,
+				CountyCode:           taxNumber.CountyCode,
+				GroupMemberTaxNumber: groupNumber,
 			},
-		}
+		}, nil
 	}
+
 	return &VatData{
 		CustomerTaxNumber: &CustomerTaxNumber{
-			TaxPayerID: taxID.Code.String()[0:8],
-			VatCode:    taxID.Code.String()[8:9],
-			CountyCode: taxID.Code.String()[9:11],
+			TaxPayerID: taxNumber.TaxPayerID,
+			VatCode:    taxNumber.VatCode,
+			CountyCode: taxNumber.CountyCode,
 		},
-	}
+	}, nil
 }
 
 var europeanCountryCodes = []l10n.Code{

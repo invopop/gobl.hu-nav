@@ -6,10 +6,11 @@ import "github.com/invopop/gobl/bill"
 // For the moment, we are only going to focus on invoice
 type InvoiceMain struct {
 	Invoice *Invoice `xml:"invoice"`
+	//BatchInvoice *BatchInvoice `xml:"batchInvoice"` // Used only for batch modifications
 }
 
 type Invoice struct {
-	//InvoiceReference  InvoiceReference  `xml:"invoiceReference,omitempty"`
+	//InvoiceReference  InvoiceReference  `xml:"invoiceReference,omitempty"` // Used for invoice modification
 	InvoiceHead *InvoiceHead `xml:"invoiceHead"`
 	//InvoiceLines      InvoiceLines      `xml:"invoiceLines,omitempty"`
 	//ProductFeeSummary ProductFeeSummary `xml:"productFeeSummary,omitempty"`
@@ -23,15 +24,15 @@ func NewInvoiceMain(inv *bill.Invoice) (*InvoiceMain, error) {
 		return nil, err
 	}
 
-	invoiceSummary, err := NewInvoiceSummary(inv)
+	//invoiceSummary, err := NewInvoiceSummary(inv)
 	if err != nil {
 		return nil, err
 	}
 
 	return &InvoiceMain{
 		Invoice: &Invoice{
-			InvoiceHead:    invoiceHead,
-			InvoiceSummary: invoiceSummary,
+			InvoiceHead: invoiceHead,
+			//InvoiceSummary: invoiceSummary,
 		},
 	}, nil
 }

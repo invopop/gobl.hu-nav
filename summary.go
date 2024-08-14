@@ -1,9 +1,7 @@
 package nav
 
 import (
-	"github.com/invopop/gobl/bill"
 	"github.com/invopop/gobl/num"
-	"github.com/invopop/gobl/tax"
 )
 
 // Depends wether the invoice is simplified or not
@@ -39,7 +37,7 @@ type VatRateVatData struct {
 	VatRateVatAmountHUF string `xml:"vatRateVatAmountHUF"`
 }
 
-func newSummaryByVatRate(rate *tax.RateTotal, info *taxInfo, ex float64) *SummaryByVatRate {
+/*func newSummaryByVatRate(rate *tax.RateTotal, info *taxInfo, ex float64) *SummaryByVatRate {
 	return &SummaryByVatRate{
 		VatRate: NewVatRate(rate, info),
 		VatRateNetData: &VatRateNetData{
@@ -51,9 +49,9 @@ func newSummaryByVatRate(rate *tax.RateTotal, info *taxInfo, ex float64) *Summar
 			VatRateVatAmountHUF: amountToHUF(rate.Amount, ex),
 		},
 	}
-}
+}*/
 
-func NewInvoiceSummary(inv *bill.Invoice) (*InvoiceSummary, error) {
+/*func NewInvoiceSummary(inv *bill.Invoice) (*InvoiceSummary, error) {
 	vat := inv.Totals.Taxes.Category(tax.CategoryVAT)
 	totalVat := num.MakeAmount(0, 5)
 	summaryVat := []*SummaryByVatRate{}
@@ -78,7 +76,7 @@ func NewInvoiceSummary(inv *bill.Invoice) (*InvoiceSummary, error) {
 		},
 	}, nil
 
-}
+}*/
 
 func amountToHUF(amount num.Amount, ex float64) string {
 	result := amount.Multiply(num.AmountFromFloat64(ex, 5))

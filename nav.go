@@ -13,8 +13,9 @@ xmlns:common="http://schemas.nav.gov.hu/NTCA/1.0/common" xmlns:base="http://sche
 
 // Standard error responses.
 var (
-	ErrNotHungarian   = newValidationError("only hungarian invoices are supported")
-	ErrNoExchangeRate = newValidationError("no exchange rate to HUF found")
+	ErrNotHungarian           = newValidationError("only hungarian invoices are supported")
+	ErrNoExchangeRate         = newValidationError("no exchange rate to HUF found")
+	ErrInvalidGroupMemberCode = newValidationError("invalid group member code")
 )
 
 // ValidationError is a simple wrapper around validation errors (that should not be retried) as opposed
@@ -35,10 +36,10 @@ func newValidationError(text string) error {
 type Document struct {
 	XMLName xml.Name `xml:"InvoiceData"`
 	XMLNS   string   `xml:"xmlns,attr"`
-	//XMLNSXsi              string      `xml:"xmlns:xsi,attr"`
-	//XSISchema             string      `xml:"xsi:schemaLocation,attr"`
-	//XMLNSCommon           string      `xml:"xmlns:common,attr"`
-	//XMLNSBase             string      `xml:"xmlns:base,attr"`
+	//XMLNSXsi              string       `xml:"xmlns:xsi,attr"`
+	//XSISchema             string       `xml:"xsi:schemaLocation,attr"`
+	//XMLNSCommon           string       `xml:"xmlns:common,attr"`
+	//XMLNSBase             string       `xml:"xmlns:base,attr"`
 	InvoiceNumber         string       `xml:"invoiceNumber"`
 	InvoiceIssueDate      string       `xml:"invoiceIssueDate"`
 	CompletenessIndicator bool         `xml:"completenessIndicator"` // Indicates whether the data report is the invoice itself
