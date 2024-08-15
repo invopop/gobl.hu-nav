@@ -10,5 +10,6 @@ The invoice data content of the data report must be embedded, encoded in BASE64 
 ## Limitations
 
 - We don't support batch invoicing (It is used only for batch modifications)
-- We don't support simplified invoices for the moment
 - We don't support modification of invoices
+- We don't support fiscal representatives
+- We don't support aggregate invoices

@@ -11,8 +11,8 @@ type InvoiceMain struct {
 
 type Invoice struct {
 	//InvoiceReference  InvoiceReference  `xml:"invoiceReference,omitempty"` // Used for invoice modification
-	InvoiceHead *InvoiceHead `xml:"invoiceHead"`
-	//InvoiceLines      InvoiceLines      `xml:"invoiceLines,omitempty"`
+	InvoiceHead  *InvoiceHead  `xml:"invoiceHead"`
+	InvoiceLines *InvoiceLines `xml:"invoiceLines,omitempty"`
 	//ProductFeeSummary ProductFeeSummary `xml:"productFeeSummary,omitempty"`
 
 	InvoiceSummary *InvoiceSummary `xml:"invoiceSummary"`
