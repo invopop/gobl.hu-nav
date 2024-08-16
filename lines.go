@@ -3,7 +3,9 @@ package nav
 import (
 	"github.com/invopop/gobl/bill"
 	"github.com/invopop/gobl/cbc"
+	"github.com/invopop/gobl/num"
 	"github.com/invopop/gobl/org"
+	"github.com/invopop/gobl/tax"
 )
 
 type InvoiceLines struct {
@@ -55,7 +57,7 @@ type ProductCode struct {
 
 type LineAmountsNormal struct {
 	LineNetAmountData   LineNetAmountData   `xml:"lineNetAmountData"`
-	LineVatRate         VatRate             `xml:"lineVatRate"`
+	LineVatRate         *VatRate            `xml:"lineVatRate"`
 	LineVatData         LineVatData         `xml:"lineVatData,omitempty"`
 	LineGrossAmountData LineGrossAmountData `xml:"lineGrossAmountData,omitempty"`
 }
@@ -76,9 +78,9 @@ type LineGrossAmountData struct {
 }
 
 type LineAmountsSimplified struct {
-	LineVatRate                  VatRate `xml:"lineVatRate"`
-	LineGrossAmountSimplified    float64 `xml:"lineGrossAmountSimplified"`
-	LineGrossAmountSimplifiedHUF float64 `xml:"lineGrossAmountSimplifiedHUF"`
+	LineVatRate                  *VatRate `xml:"lineVatRate"`
+	LineGrossAmountSimplified    float64  `xml:"lineGrossAmountSimplified"`
+	LineGrossAmountSimplifiedHUF float64  `xml:"lineGrossAmountSimplifiedHUF"`
 }
 
 var codeCategories = []string{
@@ -91,55 +93,75 @@ var validUnits = map[org.Unit]string{
 	org.UnitLitre: "LITRE", org.UnitKilometre: "KILOMETER", org.UnitCubicMetre: "CUBIC_METER",
 	org.UnitMetre: "METER", org.UnitCarton: "CARTON", org.UnitPackage: "PACK"}
 
-func NewInvoiceLines(inv *bill.Invoice) *InvoiceLines {
+func NewInvoiceLines(inv *bill.Invoice) (*InvoiceLines, error) {
 
-	return &InvoiceLines{}
+	invoiceLines := &InvoiceLines{}
+	taxinfo := newTaxInfo(inv)
+	rate, err := getInvoiceRate(inv)
+	if err != nil {
+		return nil, err
+	}
+	for _, line := range inv.Lines {
+		invoiceLine := NewLine(line, taxinfo, rate)
+		invoiceLines.Lines = append(invoiceLines.Lines, *invoiceLine)
+	}
+	invoiceLines.MergedItemIndicator = false
+
+	return invoiceLines, nil
 }
 
-func NewLine(line *bill.Line) *Line {
-	productCodes := &ProductCodes{}
-	if line.Item.Identities != nil {
-		productCodes = NewProductCodes(line.Item.Identities)
+func NewLine(line *bill.Line, info *taxInfo, rate float64) *Line {
+	lineNav := &Line{
+		LineNumber:              line.Index,
+		LineExpressionIndicator: false,
 	}
 
-	lineExpression := false
-	lineUnit := ""
-	lineUnitOwn := ""
+	if line.Item.Identities != nil {
+		lineNav.ProductCodes = NewProductCodes(line.Item.Identities)
+	}
+
 	if line.Item.Unit != "" {
 		for unit, value := range validUnits {
 			if line.Item.Unit == unit {
-				lineExpression = true
-				lineUnit = value
+				lineNav.LineExpressionIndicator = true
+				lineNav.UnitOfMeasure = value
 				break
 			}
 		}
-		if lineExpression == false {
-			lineUnitOwn = string(line.Item.Unit)
+		if !lineNav.LineExpressionIndicator {
+			lineNav.UnitOfMeasureOwn = string(line.Item.Unit)
 		}
 	}
 
-	lineNature := ""
 	if line.Item.Key != "" {
 		if line.Item.Key == "PRODUCT" {
-			lineNature = "PRODUCT"
+			lineNav.LineNatureIndicator = "PRODUCT"
 		} else if line.Item.Key == "SERVICE" {
-			lineNature = "SERVICE"
+			lineNav.LineNatureIndicator = "SERVICE"
 		} else {
-			lineNature = "OTHER"
+			lineNav.LineNatureIndicator = "OTHER"
 		}
 	}
 
-	return &Line{
-		LineNumber:              line.Index,
-		ProductCodes:            productCodes,
-		LineExpressionIndicator: lineExpression,
-		LineNatureIndicator:     lineNature,
-		LineDescription:         line.Item.Name,
-		Quantity:                line.Quantity.Float64(),
-		UnitOfMeasure:           lineUnit,
-		UnitOfMeasureOwn:        lineUnitOwn,
-		UnitPrice:               line.Item.Price.Float64(),
+	vatCombo := line.Taxes.Get(tax.CategoryVAT)
+	if vatCombo != nil {
+		if info.simplifiedInvoice {
+			lineNav.LineAmountsSimplified = &LineAmountsSimplified{
+				LineVatRate:                  NewVatRate(vatCombo, info),
+				LineGrossAmountSimplified:    line.Total.Rescale(2).Float64(),
+				LineGrossAmountSimplifiedHUF: amountToHUF(line.Total, rate).Float64(),
+			}
+		} else {
+			lineNav.LineAmountsNormal = &LineAmountsNormal{
+				LineNetAmountData: LineNetAmountData{
+					LineNetAmount:    line.Total.Rescale(2).Float64(),
+					LineNetAmountHUF: amountToHUF(line.Total, rate).Float64(),
+				},
+				LineVatRate: NewVatRate(vatCombo, info),
+			}
+		}
 	}
+	return lineNav
 }
 
 func NewProductCodes(identities []*org.Identity) *ProductCodes {
@@ -173,4 +195,9 @@ func NewProductCode(identity *org.Identity) *ProductCode {
 		ProductCodeCategory: "OTHER",
 		ProductCodeValue:    identity.Code.String(),
 	}
+}
+
+func amountToHUF(amount num.Amount, ex float64) num.Amount {
+	result := amount.Multiply(num.AmountFromFloat64(ex, 5))
+	return result.Rescale(2)
 }

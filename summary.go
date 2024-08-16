@@ -1,9 +1,5 @@
 package nav
 
-import (
-	"github.com/invopop/gobl/num"
-)
-
 // Depends wether the invoice is simplified or not
 type InvoiceSummary struct {
 	SummaryNormal *SummaryNormal `xml:"summaryNormal"`
@@ -77,8 +73,3 @@ type VatRateVatData struct {
 	}, nil
 
 }*/
-
-func amountToHUF(amount num.Amount, ex float64) string {
-	result := amount.Multiply(num.AmountFromFloat64(ex, 5))
-	return result.Rescale(2).String()
-}

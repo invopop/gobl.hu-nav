@@ -13,3 +13,4 @@ The invoice data content of the data report must be embedded, encoded in BASE64 
 - We don't support modification of invoices
 - We don't support fiscal representatives
 - We don't support aggregate invoices
+- In the VAT rate we are missing the vat amount mismatch field
