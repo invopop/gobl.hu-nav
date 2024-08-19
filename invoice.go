@@ -24,6 +24,11 @@ func NewInvoiceMain(inv *bill.Invoice) (*InvoiceMain, error) {
 		return nil, err
 	}
 
+	invoiceLines, err := NewInvoiceLines(inv)
+	if err != nil {
+		return nil, err
+	}
+
 	//invoiceSummary, err := NewInvoiceSummary(inv)
 	if err != nil {
 		return nil, err
@@ -31,7 +36,8 @@ func NewInvoiceMain(inv *bill.Invoice) (*InvoiceMain, error) {
 
 	return &InvoiceMain{
 		Invoice: &Invoice{
-			InvoiceHead: invoiceHead,
+			InvoiceHead:  invoiceHead,
+			InvoiceLines: invoiceLines,
 			//InvoiceSummary: invoiceSummary,
 		},
 	}, nil

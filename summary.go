@@ -2,10 +2,9 @@ package nav
 
 // Depends wether the invoice is simplified or not
 type InvoiceSummary struct {
-	SummaryNormal *SummaryNormal `xml:"summaryNormal"`
-	// This is to differentiate between normal or simplified invoice, for the moment we are only doing normal
-	//SummarySimplified SummarySimplified `xml:"summarySimplified,omitempty"`
-	//SummaryGrossData  SummaryGrossData  `xml:"summaryGrossData,omitempty"`
+	SummaryNormal *SummaryNormal `xml:"summaryNormal,omitempty"`
+	//SummarySimplified *SummarySimplified `xml:"summarySimplified,omitempty"`
+	//SummaryGrossData  *SummaryGrossData  `xml:"summaryGrossData,omitempty"`
 }
 
 type SummaryNormal struct {

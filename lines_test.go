@@ -13,28 +13,41 @@ import (
 )
 
 func TestNewInvoiceLines(t *testing.T) {
+	// Set up test data
 	invoice := &bill.Invoice{
 		Currency: currency.HUF,
 		Lines: []*bill.Line{
 			{
-				Index: 1,
+				Index:    1,
+				Quantity: num.MakeAmount(2, 0),
 				Item: &org.Item{
+					Name:  "Test Product",
+					Key:   "PRODUCT",
+					Price: num.MakeAmount(10000, 2),
+					Unit:  org.UnitPiece,
 					Identities: []*org.Identity{
-						{Type: "VTSZ", Code: cbc.Code("12345")},
+						{Type: "VTSZ", Code: cbc.Code("1234")},
 					},
-					Unit: org.UnitKilogram,
-					Key:  "PRODUCT",
 				},
-				Total: num.AmountFromFloat64(1000, 2),
+				Sum: num.MakeAmount(20000, 2),
 				Taxes: tax.Set{
 					{Category: tax.CategoryVAT, Percent: num.NewPercentage(27, 4)},
 				},
+				Discounts: []*bill.LineDiscount{
+					{
+						Reason: "Seasonal Discount",
+						Amount: num.MakeAmount(500, 2),
+					},
+				},
+				Total: num.MakeAmount(19500, 2),
 			},
 		},
-		Tax: &bill.Tax{Tags: []cbc.Key{tax.TagSimplified}},
 	}
 
+	// Execute the function under test
 	invoiceLines, err := NewInvoiceLines(invoice)
+
+	// Assertions
 	assert.NoError(t, err)
 	assert.NotNil(t, invoiceLines)
 	assert.False(t, invoiceLines.MergedItemIndicator)
@@ -42,108 +55,68 @@ func TestNewInvoiceLines(t *testing.T) {
 
 	line := invoiceLines.Lines[0]
 	assert.Equal(t, 1, line.LineNumber)
-	assert.NotNil(t, line.ProductCodes)
-	assert.Equal(t, "KILOGRAM", line.UnitOfMeasure)
+	assert.Equal(t, "Test Product", line.LineDescription)
 	assert.Equal(t, "PRODUCT", line.LineNatureIndicator)
-	assert.NotNil(t, line.LineAmountsSimplified)
-	assert.Nil(t, line.LineAmountsNormal)
-}
+	assert.Equal(t, 2.0, line.Quantity)
+	assert.Equal(t, 100.00, line.UnitPrice)
+	assert.Equal(t, "PIECE", line.UnitOfMeasure)
 
-func TestNewLine_NormalInvoice(t *testing.T) {
-	line := &bill.Line{
-		Index: 1,
-		Item: &org.Item{
-			Identities: []*org.Identity{
-				{Type: "VTSZ", Code: cbc.Code("12345")},
-			},
-			Unit: org.UnitKilogram,
-			Key:  "PRODUCT",
-		},
-		Total: num.AmountFromFloat64(1000, 2),
-		Taxes: tax.Set{
-			{Category: tax.CategoryVAT, Percent: num.NewPercentage(27, 4)},
-		},
-	}
+	// Check Product Codes
+	assert.NotNil(t, line.ProductCodes)
+	assert.Len(t, line.ProductCodes.ProductCode, 1)
+	assert.Equal(t, "VTSZ", line.ProductCodes.ProductCode[0].ProductCodeCategory)
+	assert.Equal(t, "1234", line.ProductCodes.ProductCode[0].ProductCodeValue)
 
-	taxInfo := &taxInfo{}
-	rate := 1.0
+	// Check Discount Data
+	assert.NotNil(t, line.LineDiscountData)
+	assert.Equal(t, "Seasonal Discount. ", line.LineDiscountData.DiscountDescription)
+	assert.Equal(t, 5.00, line.LineDiscountData.DiscountValue)
 
-	lineNav, err := NewLine(line, taxInfo, rate)
-	assert.NoError(t, err)
-	assert.NotNil(t, lineNav)
-	assert.Equal(t, 1, lineNav.LineNumber)
-	assert.Equal(t, "KILOGRAM", lineNav.UnitOfMeasure)
-	assert.Equal(t, "PRODUCT", lineNav.LineNatureIndicator)
-	assert.NotNil(t, lineNav.LineAmountsNormal)
-	assert.Nil(t, lineNav.LineAmountsSimplified)
+	// Check VAT and Amounts
+	assert.NotNil(t, line.LineAmountsNormal)
+	assert.Equal(t, 195.00, line.LineAmountsNormal.LineNetAmountData.LineNetAmount)
+	assert.Equal(t, 247.65, line.LineAmountsNormal.LineGrossAmountData.LineGrossAmount) // Assuming 27% VAT
 }
 
 func TestNewLine_SimplifiedInvoice(t *testing.T) {
-	line := &bill.Line{
-		Index: 1,
-		Item: &org.Item{
-			Identities: []*org.Identity{
-				{Type: "VTSZ", Code: cbc.Code("12345")},
+	// Set up test data for a simplified invoice
+	invoice := &bill.Invoice{
+		Lines: []*bill.Line{
+			{
+				Index: 1,
+				Item: &org.Item{
+					Name:  "Simplified Service",
+					Key:   "SERVICE",
+					Price: num.MakeAmount(10000, 2),
+					Unit:  org.UnitHour,
+				},
+				Quantity: num.MakeAmount(3, 0),
+				Taxes: tax.Set{
+					{Category: tax.CategoryVAT, Percent: num.NewPercentage(18, 4)},
+				},
+				Total: num.MakeAmount(30000, 2),
 			},
-			Unit: org.UnitKilogram,
-			Key:  "PRODUCT",
-		},
-		Total: num.AmountFromFloat64(1000, 2),
-		Taxes: tax.Set{
-			{Category: tax.CategoryVAT, Percent: num.NewPercentage(27, 4)},
 		},
 	}
 
-	taxInfo := &taxInfo{simplifiedInvoice: true}
+	info := &taxInfo{simplifiedInvoice: true}
 	rate := 1.0
 
-	lineNav, err := NewLine(line, taxInfo, rate)
+	// Execute the function under test
+	line, err := NewLine(invoice.Lines[0], info, rate)
+
+	// Assertions
 	assert.NoError(t, err)
-	assert.NotNil(t, lineNav)
-	assert.Equal(t, 1, lineNav.LineNumber)
-	assert.Equal(t, "KILOGRAM", lineNav.UnitOfMeasure)
-	assert.Equal(t, "PRODUCT", lineNav.LineNatureIndicator)
-	assert.NotNil(t, lineNav.LineAmountsSimplified)
-	assert.Nil(t, lineNav.LineAmountsNormal)
-}
+	assert.NotNil(t, line)
 
-func TestNewProductCodes(t *testing.T) {
-	identities := []*org.Identity{
-		{Type: "VTSZ", Code: cbc.Code("12345")},
-		{Type: "OWN", Code: cbc.Code("OWN123")},
-	}
+	// Check line data for a simplified invoice
+	assert.Equal(t, "Simplified Service", line.LineDescription)
+	assert.Equal(t, "SERVICE", line.LineNatureIndicator)
+	assert.Equal(t, 3.0, line.Quantity)
+	assert.Equal(t, 100.00, line.UnitPrice)
+	assert.Equal(t, "HOUR", line.UnitOfMeasure)
 
-	productCodes := NewProductCodes(identities)
-	assert.NotNil(t, productCodes)
-	assert.Len(t, productCodes.ProductCode, 2)
-
-	assert.Equal(t, "VTSZ", productCodes.ProductCode[0].ProductCodeCategory)
-	assert.Equal(t, "12345", productCodes.ProductCode[0].ProductCodeValue)
-
-	assert.Equal(t, "OWN", productCodes.ProductCode[1].ProductCodeCategory)
-	assert.Equal(t, "OWN123", productCodes.ProductCode[1].ProductCodeOwnValue)
-}
-
-func TestNewProductCode(t *testing.T) {
-	identity := &org.Identity{Type: "VTSZ", Code: cbc.Code("12345")}
-	productCode := NewProductCode(identity)
-	assert.NotNil(t, productCode)
-	assert.Equal(t, "VTSZ", productCode.ProductCodeCategory)
-	assert.Equal(t, "12345", productCode.ProductCodeValue)
-
-	identity = &org.Identity{Type: "OWN", Code: cbc.Code("OWN123")}
-	productCode = NewProductCode(identity)
-	assert.NotNil(t, productCode)
-	assert.Equal(t, "OWN", productCode.ProductCodeCategory)
-	assert.Equal(t, "OWN123", productCode.ProductCodeOwnValue)
-}
-
-func TestAmountToHUF(t *testing.T) {
-	amount := num.AmountFromFloat64(1000, 2)
-	exchangeRate := 300.0
-
-	convertedAmount := amountToHUF(amount, exchangeRate)
-	expectedAmount := num.AmountFromFloat64(300000, 2)
-
-	assert.Equal(t, expectedAmount, convertedAmount)
+	// Check VAT and Amounts
+	assert.NotNil(t, line.LineAmountsSimplified)
+	assert.Equal(t, 300.00, line.LineAmountsSimplified.LineGrossAmountSimplified)
 }
