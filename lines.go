@@ -148,17 +148,18 @@ func NewLine(line *bill.Line, info *taxInfo, rate float64) (*Line, error) {
 
 	vatCombo := line.Taxes.Get(tax.CategoryVAT)
 	if vatCombo != nil {
-		vatRate, err := NewVatRate(vatCombo, info)
-		if err != nil {
-			return nil, err
-		}
 		if info.simplifiedInvoice {
+			vatAmount := line.Total.Multiply(vatCombo.Percent.Amount())
 			lineNav.LineAmountsSimplified = &LineAmountsSimplified{
-				LineVatRate:                  vatRate,
+				LineVatRate:                  &VatRate{VatContent: vatAmount.Rescale(4).Float64()},
 				LineGrossAmountSimplified:    line.Total.Rescale(2).Float64(),
 				LineGrossAmountSimplifiedHUF: amountToHUF(line.Total, rate).Float64(),
 			}
 		} else {
+			vatRate, err := NewVatRate(vatCombo, info)
+			if err != nil {
+				return nil, err
+			}
 			lineNav.LineAmountsNormal = &LineAmountsNormal{
 				LineNetAmountData: LineNetAmountData{
 					LineNetAmount:    line.Total.Rescale(2).Float64(),
