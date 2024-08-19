@@ -16,6 +16,7 @@ var (
 	ErrNotHungarian           = newValidationError("only hungarian invoices are supported")
 	ErrNoExchangeRate         = newValidationError("no exchange rate to HUF found")
 	ErrInvalidGroupMemberCode = newValidationError("invalid group member code")
+	ErrNoVatRateField         = newValidationError("no vat rate field found")
 )
 
 // ValidationError is a simple wrapper around validation errors (that should not be retried) as opposed

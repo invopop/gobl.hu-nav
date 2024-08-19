@@ -102,7 +102,10 @@ func NewInvoiceLines(inv *bill.Invoice) (*InvoiceLines, error) {
 		return nil, err
 	}
 	for _, line := range inv.Lines {
-		invoiceLine := NewLine(line, taxinfo, rate)
+		invoiceLine, err := NewLine(line, taxinfo, rate)
+		if err != nil {
+			return nil, err
+		}
 		invoiceLines.Lines = append(invoiceLines.Lines, *invoiceLine)
 	}
 	invoiceLines.MergedItemIndicator = false
@@ -110,7 +113,7 @@ func NewInvoiceLines(inv *bill.Invoice) (*InvoiceLines, error) {
 	return invoiceLines, nil
 }
 
-func NewLine(line *bill.Line, info *taxInfo, rate float64) *Line {
+func NewLine(line *bill.Line, info *taxInfo, rate float64) (*Line, error) {
 	lineNav := &Line{
 		LineNumber:              line.Index,
 		LineExpressionIndicator: false,
@@ -145,9 +148,13 @@ func NewLine(line *bill.Line, info *taxInfo, rate float64) *Line {
 
 	vatCombo := line.Taxes.Get(tax.CategoryVAT)
 	if vatCombo != nil {
+		vatRate, err := NewVatRate(vatCombo, info)
+		if err != nil {
+			return nil, err
+		}
 		if info.simplifiedInvoice {
 			lineNav.LineAmountsSimplified = &LineAmountsSimplified{
-				LineVatRate:                  NewVatRate(vatCombo, info),
+				LineVatRate:                  vatRate,
 				LineGrossAmountSimplified:    line.Total.Rescale(2).Float64(),
 				LineGrossAmountSimplifiedHUF: amountToHUF(line.Total, rate).Float64(),
 			}
@@ -157,11 +164,11 @@ func NewLine(line *bill.Line, info *taxInfo, rate float64) *Line {
 					LineNetAmount:    line.Total.Rescale(2).Float64(),
 					LineNetAmountHUF: amountToHUF(line.Total, rate).Float64(),
 				},
-				LineVatRate: NewVatRate(vatCombo, info),
+				LineVatRate: vatRate,
 			}
 		}
 	}
-	return lineNav
+	return lineNav, nil
 }
 
 func NewProductCodes(identities []*org.Identity) *ProductCodes {

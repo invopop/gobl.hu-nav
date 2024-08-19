@@ -2,7 +2,7 @@ package nav
 
 import (
 	"github.com/invopop/gobl/bill"
-	"github.com/invopop/gobl/regimes/hu"
+	//"github.com/invopop/gobl/regimes/hu"
 	"github.com/invopop/gobl/tax"
 )
 
@@ -39,105 +39,113 @@ type taxInfo struct {
 	antique               bool
 }
 
-func NewVatRate(obj any, info *taxInfo) *VatRate {
+func NewVatRate(obj any, info *taxInfo) (*VatRate, error) {
 	switch obj := obj.(type) {
 	case *tax.RateTotal:
 		return newVatRateTotal(obj, info)
 	case *tax.Combo:
 		return newVatRateCombo(obj, info)
 	}
-	return nil
+	return nil, nil
 }
 
 // NewVatRate creates a new VatRate from a taxid
-func newVatRateTotal(rate *tax.RateTotal, info *taxInfo) *VatRate {
+func newVatRateTotal(rate *tax.RateTotal, info *taxInfo) (*VatRate, error) {
 	// First if it is not exent or simplified invoice we can return the percentage
 	if rate.Percent != nil {
-		return &VatRate{VatPercentage: rate.Percent.Amount().Rescale(4).Float64()}
+		return &VatRate{VatPercentage: rate.Percent.Amount().Rescale(4).Float64()}, nil
 	}
 
 	// If it is a simplified invoice we can return the content
 	if info.simplifiedInvoice {
-		return &VatRate{VatContent: rate.Amount.Rescale(4).Float64()}
+		return &VatRate{VatContent: rate.Amount.Rescale(4).Float64()}, nil
 	}
 
 	// Check if in the rate extensions there is extkeyexemptioncode or extkeyvatoutofscopecode
 	for k, v := range rate.Ext {
-		if k == hu.ExtKeyExemptionCode {
-			return &VatRate{VatExemption: &DetailedReason{Case: v.String(), Reason: "Exempt"}}
+		if k == "hu-exemption-code" { //hu.ExtKeyExemptionCode {
+			return &VatRate{VatExemption: &DetailedReason{Case: v.String(), Reason: "Exempt"}}, nil
 		}
 
-		if k == hu.ExtKeyVatOutOfScopeCode {
-			return &VatRate{VatOutOfScope: &DetailedReason{Case: v.String(), Reason: "Out of Scope"}}
+		if k == "hu-vat-out-of-scope-code" { //hu.ExtKeyVatOutOfScopeCode {
+			return &VatRate{VatOutOfScope: &DetailedReason{Case: v.String(), Reason: "Out of Scope"}}, nil
 		}
 	}
 
 	// Check if it is a domestic reverse charge
 	if info.domesticReverseCharge {
-		return &VatRate{VatDomesticReverseCharge: true}
+		return &VatRate{VatDomesticReverseCharge: true}, nil
 	}
 
 	// Check the margin scheme indicators
 
 	if info.travelAgency {
-		return &VatRate{MarginSchemeIndicator: "TRAVEL_AGENCY"}
+		return &VatRate{MarginSchemeIndicator: "TRAVEL_AGENCY"}, nil
 	}
 	if info.secondHand {
-		return &VatRate{MarginSchemeIndicator: "SECOND_HAND"}
+		return &VatRate{MarginSchemeIndicator: "SECOND_HAND"}, nil
 	}
 	if info.art {
-		return &VatRate{MarginSchemeIndicator: "ARTWORK"}
+		return &VatRate{MarginSchemeIndicator: "ARTWORK"}, nil
 	}
 	if info.antique {
-		return &VatRate{MarginSchemeIndicator: "ANTIQUE"}
+		return &VatRate{MarginSchemeIndicator: "ANTIQUE"}, nil
 	}
 
 	// Missing vat amount mismatch
 
-	return &VatRate{NoVatCharge: true}
+	// If percent is nil
+	if rate.Percent == nil {
+		return &VatRate{NoVatCharge: true}, nil
+	}
+
+	return nil, ErrNoVatRateField
 
 }
 
-func newVatRateCombo(c *tax.Combo, info *taxInfo) *VatRate {
+func newVatRateCombo(c *tax.Combo, info *taxInfo) (*VatRate, error) {
 	// First if it is not exent or simplified invoice we can return the percentage
 	if c.Percent != nil {
-		return &VatRate{VatPercentage: c.Percent.Amount().Rescale(4).Float64()}
+		return &VatRate{VatPercentage: c.Percent.Amount().Rescale(4).Float64()}, nil
 	}
 
 	// Check if in the rate extensions there is extkeyexemptioncode or extkeyvatoutofscopecode
 	for k, v := range c.Ext {
-		if k == hu.ExtKeyExemptionCode {
-			return &VatRate{VatExemption: &DetailedReason{Case: v.String(), Reason: "Exempt"}}
+		if k == "hu-exemption-code" { //hu.ExtKeyExemptionCode {
+			return &VatRate{VatExemption: &DetailedReason{Case: v.String(), Reason: "Exempt"}}, nil
 		}
 
-		if k == hu.ExtKeyVatOutOfScopeCode {
-			return &VatRate{VatOutOfScope: &DetailedReason{Case: v.String(), Reason: "Out of Scope"}}
+		if k == "hu-vat-out-of-scope-code" { //hu.ExtKeyVatOutOfScopeCode {
+			return &VatRate{VatOutOfScope: &DetailedReason{Case: v.String(), Reason: "Out of Scope"}}, nil
 		}
 	}
 
 	// Check if it is a domestic reverse charge
 	if info.domesticReverseCharge {
-		return &VatRate{VatDomesticReverseCharge: true}
+		return &VatRate{VatDomesticReverseCharge: true}, nil
 	}
 
 	// Check the margin scheme indicators
-
 	if info.travelAgency {
-		return &VatRate{MarginSchemeIndicator: "TRAVEL_AGENCY"}
+		return &VatRate{MarginSchemeIndicator: "TRAVEL_AGENCY"}, nil
 	}
 	if info.secondHand {
-		return &VatRate{MarginSchemeIndicator: "SECOND_HAND"}
+		return &VatRate{MarginSchemeIndicator: "SECOND_HAND"}, nil
 	}
 	if info.art {
-		return &VatRate{MarginSchemeIndicator: "ARTWORK"}
+		return &VatRate{MarginSchemeIndicator: "ARTWORK"}, nil
 	}
 	if info.antique {
-		return &VatRate{MarginSchemeIndicator: "ANTIQUE"}
+		return &VatRate{MarginSchemeIndicator: "ANTIQUE"}, nil
 	}
 
 	// Missing vat amount mismatch
 
-	return &VatRate{NoVatCharge: true}
+	if c.Percent == nil {
+		return &VatRate{NoVatCharge: true}, nil
+	}
+
+	return nil, ErrNoVatRateField
 }
 
 // Until PR approved in regimes this wont work
@@ -148,15 +156,15 @@ func newTaxInfo(inv *bill.Invoice) *taxInfo {
 			switch scheme {
 			case tax.TagSimplified:
 				info.simplifiedInvoice = true
-			case hu.TagDomesticReverseCharge:
+			case "domestic-reverse-charge": //case hu.TagDomesticReverseCharge:
 				info.domesticReverseCharge = true
-			case hu.TagTravelAgency:
+			case "travel-agency": //hu.TagTravelAgency:
 				info.travelAgency = true
-			case hu.TagSecondHand:
+			case "second-hand": //hu.TagSecondHand:
 				info.secondHand = true
-			case hu.TagArt:
+			case "art": //hu.TagArt:
 				info.art = true
-			case hu.TagAntique:
+			case "antiques": //hu.TagAntique:
 				info.antique = true
 			}
 		}
