@@ -1,4 +1,4 @@
-package nav
+package doc
 
 // Depends wether the invoice is simplified or not
 type InvoiceSummary struct {
