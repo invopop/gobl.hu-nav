@@ -34,10 +34,10 @@ func TestNewTokenExchangeRequest(t *testing.T) {
 	signToken := os.Getenv("SIGN_TOKEN")
 	taxID := os.Getenv("TAX_ID")
 
-	requestData := NewTokenExchangeData(userID, userPWD, signToken, taxID, software)
+	requestData := NewTokenExchangeRequest(userID, userPWD, signToken, taxID, software)
 
 	// Execute the function
-	token, err := NewTokenExchangeRequest(requestData)
+	token, err := PostTokenExchangeRequest(requestData)
 
 	// Assert results
 	require.NoError(t, err, "Expected no error from NewTokenExchangeRequest")
