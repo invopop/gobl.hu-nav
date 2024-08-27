@@ -14,7 +14,7 @@ const (
 
 // ManageInvoiceRequest represents the root element
 type ManageInvoiceRequest struct {
-	XMLName           xml.Name           `xml:"http://schemas.nav.gov.hu/OSA/3.0/api ManageInvoiceRequest"`
+	XMLName           xml.Name           `xml:"ManageInvoiceRequest"`
 	Common            string             `xml:"xmlns:common,attr"`
 	Xmlns             string             `xml:"xmlns,attr"`
 	Header            *Header            `xml:"common:header"`
@@ -44,12 +44,25 @@ type ElectronicInvoiceHash struct {
 	Value      string `xml:",chardata"`
 }
 
+type ManageInvoiceResponse struct {
+	XMLName       xml.Name  `xml:"ManageInvoiceResponse"`
+	Header        *Header   `xml:"header"`
+	Result        *Result   `xml:"result"`
+	Software      *Software `xml:"software"`
+	TransactionId string    `xml:"transactionId"`
+}
+
+func ReportInvoice(username string, password string, taxNumber string, signKey string, exchangeToken string, soft *Software, invoice string) error {
+	requestData := NewManageInvoiceRequest(username, password, taxNumber, signKey, exchangeToken, soft, invoice)
+	return PostManageInvoiceRequest(requestData)
+}
+
 func NewManageInvoiceRequest(username string, password string, taxNumber string, signKey string, exchangeToken string, soft *Software, invoice string) ManageInvoiceRequest {
 	timestamp := time.Now().UTC()
-	requestID := generateRandomString(20) //This cannnot be repeated in the time window of 5 mins
+	requestID := generateRandomString(20) //This must be unique for each request
 	operationType := "CREATE"
 	return ManageInvoiceRequest{
-		Common:        "http://schemas.nav.gov.hu/OSA/3.0/common",
+		Common:        "http://schemas.nav.gov.hu/NTCA/1.0/common",
 		Xmlns:         "http://schemas.nav.gov.hu/OSA/3.0/api",
 		Header:        NewHeader(requestID, timestamp),
 		User:          NewUser(username, password, taxNumber, signKey, requestID, timestamp, operationType+invoice),
@@ -68,7 +81,7 @@ func NewManageInvoiceRequest(username string, password string, taxNumber string,
 	}
 }
 
-func PostManageInvoiceRequest(requestData ManageInvoiceRequest) (string, error) {
+func PostManageInvoiceRequest(requestData ManageInvoiceRequest) error {
 	client := resty.New()
 
 	resp, err := client.R().
@@ -78,12 +91,23 @@ func PostManageInvoiceRequest(requestData ManageInvoiceRequest) (string, error) 
 		Post(manageInvoiceEndpoint)
 
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	if resp.StatusCode() == 200 {
-		return resp.String(), nil
+		var manageInvoiceResponse ManageInvoiceResponse
+		err = xml.Unmarshal(resp.Body(), &manageInvoiceResponse)
+		if err != nil {
+			return err
+		}
+		return nil
 	}
 
-	return "", fmt.Errorf("error code: %s", resp.Status())
+	var generalErrorResponse GeneralErrorResponse
+	err = xml.Unmarshal(resp.Body(), &generalErrorResponse)
+	if err != nil {
+		return err
+	}
+
+	return fmt.Errorf("error code: %s, message: %s", resp.Status(), generalErrorResponse.Result.ErrorCode)
 }

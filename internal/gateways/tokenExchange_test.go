@@ -31,15 +31,14 @@ func TestNewTokenExchangeRequest(t *testing.T) {
 
 	userID := os.Getenv("USER_ID")
 	userPWD := os.Getenv("USER_PWD")
-	signToken := os.Getenv("SIGN_TOKEN")
+	signKey := os.Getenv("SIGN_KEY")
+	exchangeKey := os.Getenv("EXCHANGE_KEY")
 	taxID := os.Getenv("TAX_ID")
 
-	requestData := NewTokenExchangeRequest(userID, userPWD, signToken, taxID, software)
-
-	// Execute the function
-	token, err := PostTokenExchangeRequest(requestData)
+	token, err := GetToken(userID, userPWD, signKey, exchangeKey, taxID, software)
 
 	// Assert results
 	require.NoError(t, err, "Expected no error from NewTokenExchangeRequest")
-	assert.NotEmpty(t, token, "Expected non-empty token from NewTokenExchangeRequest")
+	assert.NotNil(t, token, "Expected non-empty token from NewTokenExchangeRequest")
+
 }

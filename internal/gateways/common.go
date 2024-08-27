@@ -3,6 +3,7 @@ package gateways
 import (
 	"crypto/sha512"
 	"encoding/hex"
+	"encoding/xml"
 	"hash"
 	"math/rand"
 	"strings"
@@ -10,6 +11,10 @@ import (
 
 	"github.com/invopop/gobl/tax"
 	"golang.org/x/crypto/sha3"
+)
+
+const (
+	charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 )
 
 type Header struct {
@@ -47,10 +52,23 @@ type Software struct {
 	SoftwareDevTaxNumber   string `xml:"softwareDevTaxNumber"`
 }
 
+type GeneralErrorResponse struct {
+	XMLName  xml.Name     `xml:"GeneralErrorResponse"`
+	Header   *Header      `xml:"header"`
+	Result   *ErrorResult `xml:"result"`
+	Software *Software    `xml:"software"`
+}
+
+type ErrorResult struct {
+	FuncCode  string `xml:"funcCode"`
+	ErrorCode string `xml:"errorCode"`
+	Message   string `xml:"message"`
+}
+
 func NewHeader(requestID string, timestamp time.Time) *Header {
 	return &Header{
 		RequestId:      requestID,
-		Timestamp:      timestamp.Format("2006-01-02T15:04:05.000Z"),
+		Timestamp:      timestamp.Format("2006-01-02T15:04:05.00Z"),
 		RequestVersion: "3.0",
 		HeaderVersion:  "1.0",
 	}
@@ -82,21 +100,19 @@ func hashPassword(password string) string {
 }
 
 func computeRequestSignature(requestID string, timestamp time.Time, signKey string, options ...string) string {
-	hash := sha3.New512()
-
 	timeSignature := timestamp.Format("20060102150405")
 
 	hashBase := requestID + timeSignature + signKey
 
 	if len(options) == 0 {
-		return hashInput(hash, hashBase)
+		return hashInput(sha3.New512(), hashBase)
 	}
 
-	hashedInvoice := hashInput(hash, options[0])
+	hashedInvoice := hashInput(sha3.New512(), options[0])
 
 	hashBase += hashedInvoice
 
-	return hashInput(hash, hashBase)
+	return hashInput(sha3.New512(), hashBase)
 
 }
 
