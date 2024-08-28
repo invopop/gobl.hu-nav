@@ -4,12 +4,6 @@ import (
 	"encoding/xml"
 	"fmt"
 	"time"
-
-	"github.com/go-resty/resty/v2"
-)
-
-const (
-	manageInvoiceEndpoint = "https://api-test.onlineszamla.nav.gov.hu/invoiceService/v3/manageInvoice"
 )
 
 // ManageInvoiceRequest represents the root element
@@ -18,7 +12,7 @@ type ManageInvoiceRequest struct {
 	Common            string             `xml:"xmlns:common,attr"`
 	Xmlns             string             `xml:"xmlns,attr"`
 	Header            *Header            `xml:"common:header"`
-	User              *User              `xml:"common:user"`
+	User              *UserRequest       `xml:"common:user"`
 	Software          *Software          `xml:"software"`
 	ExchangeToken     string             `xml:"exchangeToken"`
 	InvoiceOperations *InvoiceOperations `xml:"invoiceOperations"`
@@ -52,22 +46,22 @@ type ManageInvoiceResponse struct {
 	TransactionId string    `xml:"transactionId"`
 }
 
-func ReportInvoice(username string, password string, taxNumber string, signKey string, exchangeToken string, soft *Software, invoice string) (string, error) {
-	requestData := NewManageInvoiceRequest(username, password, taxNumber, signKey, exchangeToken, soft, invoice)
-	return PostManageInvoiceRequest(requestData)
+func (g *Client) ReportInvoice(invoice string) (string, error) {
+	requestData := g.newManageInvoiceRequest(invoice)
+	return g.postManageInvoiceRequest(requestData)
 }
 
-func NewManageInvoiceRequest(username string, password string, taxNumber string, signKey string, exchangeToken string, soft *Software, invoice string) ManageInvoiceRequest {
+func (g *Client) newManageInvoiceRequest(invoice string) ManageInvoiceRequest {
 	timestamp := time.Now().UTC()
-	requestID := generateRandomString(20) //This must be unique for each request
-	operationType := "CREATE"
+	requestID := NewRequestID(timestamp)
+	operationType := "CREATE" // For the moment, only CREATE is supported
 	return ManageInvoiceRequest{
 		Common:        "http://schemas.nav.gov.hu/NTCA/1.0/common",
 		Xmlns:         "http://schemas.nav.gov.hu/OSA/3.0/api",
 		Header:        NewHeader(requestID, timestamp),
-		User:          NewUser(username, password, taxNumber, signKey, requestID, timestamp, operationType+invoice),
-		Software:      soft,
-		ExchangeToken: exchangeToken,
+		User:          g.NewUser(requestID, timestamp, operationType+invoice),
+		Software:      g.software,
+		ExchangeToken: g.token.Token,
 		InvoiceOperations: &InvoiceOperations{
 			CompressedContent: false,
 			InvoiceOperation: []*InvoiceOperation{
@@ -81,14 +75,12 @@ func NewManageInvoiceRequest(username string, password string, taxNumber string,
 	}
 }
 
-func PostManageInvoiceRequest(requestData ManageInvoiceRequest) (string, error) {
-	client := resty.New()
-
-	resp, err := client.R().
+func (g *Client) postManageInvoiceRequest(requestData ManageInvoiceRequest) (string, error) {
+	resp, err := g.rest.R().
 		SetHeader("Content-Type", "application/xml").
 		SetHeader("Accept", "application/xml").
 		SetBody(requestData).
-		Post(manageInvoiceEndpoint)
+		Post(ManageInvoiceEndpoint)
 
 	if err != nil {
 		return "", err

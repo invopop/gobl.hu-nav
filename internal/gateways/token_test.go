@@ -1,7 +1,6 @@
 package gateways
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"testing"
@@ -14,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestNewTokenExchangeRequest(t *testing.T) {
+func TestGetToken(t *testing.T) {
 	// Set up test data
 	software := NewSoftware(
 		tax.Identity{Country: l10n.ES.Tax(), Code: cbc.Code("B12345678")},
@@ -36,12 +35,14 @@ func TestNewTokenExchangeRequest(t *testing.T) {
 	exchangeKey := os.Getenv("EXCHANGE_KEY")
 	taxID := os.Getenv("TAX_ID")
 
-	token, err := GetToken(userID, userPWD, signKey, exchangeKey, taxID, software)
+	user := NewUser(userID, userPWD, signKey, exchangeKey, taxID)
+
+	client := New(user, software, Environment("testing"))
+
+	err = client.GetToken()
 
 	// Assert results
 	require.NoError(t, err, "Expected no error from NewTokenExchangeRequest")
-	assert.NotNil(t, token, "Expected non-empty token from NewTokenExchangeRequest")
-
-	fmt.Println("Token: ", token.Token)
+	assert.NotNil(t, client.token, "Expected non-empty token from NewTokenExchangeRequest")
 
 }

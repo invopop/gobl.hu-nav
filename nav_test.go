@@ -2,6 +2,8 @@ package nav
 
 import (
 	"encoding/base64"
+	"encoding/xml"
+	"fmt"
 	"log"
 	"os"
 	"testing"
@@ -35,22 +37,38 @@ func TestReportInvoice(t *testing.T) {
 	exchangeKey := os.Getenv("EXCHANGE_KEY")
 	taxID := os.Getenv("TAX_ID")
 
-	client := NewNav(userID, userPWD, signKey, exchangeKey, taxID, software)
+	user := NewUser(userID, userPWD, signKey, exchangeKey, taxID)
 
-	// Read and encode the invoice XML file
+	navClient := NewNav(user, software, InTesting())
+
 	xmlContent, err := os.ReadFile("examples/example.xml")
 	if err != nil {
 		t.Fatalf("Failed to read sample invoice file: %v", err)
 	}
 	encodedInvoice := base64.StdEncoding.EncodeToString(xmlContent)
 
-	// Call the function being tested
-	err = client.ReportInvoice(encodedInvoice)
+	navClient.FetchToken()
+
+	transactionId, err := navClient.ReportInvoice(encodedInvoice)
 
 	// Assert the result
 	if err != nil {
 		t.Errorf("ReportInvoice returned an unexpected error: %v", err)
 	}
+	require.NoError(t, err, "Expected no error")
 
-	require.NoError(t, err, "Expected no error from NewTokenExchangeRequest")
+	resultsList, err := navClient.GetTransactionStatus(transactionId)
+	if err != nil {
+		t.Errorf("GetTransactionStatus returned an unexpected error: %v", err)
+	}
+	require.NoError(t, err, "Expected no error")
+
+	// Print result in xml format for debugging
+	xmlData, err := xml.MarshalIndent(resultsList, "", "  ")
+	if err != nil {
+		fmt.Printf("Error marshalling to XML: %v\n", err)
+		return
+	}
+
+	fmt.Println(string(xmlData))
 }

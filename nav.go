@@ -1,66 +1,62 @@
 package nav
 
 import (
-	"encoding/xml"
-	"fmt"
-
 	"github.com/invopop/gobl.hu-nav/internal/gateways"
 	"github.com/invopop/gobl/tax"
 )
 
-type nav struct {
-	login       string
-	password    string
-	signKey     string
-	exchangeKey string
-	taxNumber   string
-	software    *gateways.Software
-	token       *gateways.TokenInfo
+type Nav struct {
+	gw  *gateways.Client
+	env gateways.Environment
 }
 
-func NewNav(login, password, signKey, exchangeKey, taxNumber string, software *gateways.Software) *nav {
-	return &nav{
-		login:       login,
-		password:    password,
-		signKey:     signKey,
-		exchangeKey: exchangeKey,
-		taxNumber:   taxNumber,
-		software:    software,
+type Option func(*Nav)
+
+func NewNav(user *gateways.User, software *gateways.Software, opts ...Option) *Nav {
+
+	c := new(Nav)
+
+	for _, opt := range opts {
+		opt(c)
+	}
+
+	c.gw = gateways.New(user, software, c.env)
+
+	return c
+}
+
+// InProduction defines the connection to use the production environment.
+func InProduction() Option {
+	return func(c *Nav) {
+		c.env = gateways.EnvironmentProduction
 	}
 }
 
+// InTesting defines the connection to use the testing environment.
+func InTesting() Option {
+	return func(c *Nav) {
+		c.env = gateways.EnvironmentTesting
+	}
+}
+
+func (n *Nav) FetchToken() error {
+	return n.gw.GetToken()
+}
+
+func (n *Nav) ReportInvoice(invoice string) (string, error) {
+	return n.gw.ReportInvoice(invoice)
+}
+
+func (n *Nav) GetTransactionStatus(transactionId string) ([]*gateways.ProcessingResult, error) {
+	return n.gw.GetStatus(transactionId)
+}
+
+// NewSoftware creates a new Software with the information about the software developer
 func NewSoftware(taxNumber tax.Identity, name string, operation string, version string, devName string, devContact string) *gateways.Software {
 	return gateways.NewSoftware(taxNumber, name, operation, version, devName, devContact)
 }
 
-func (n *nav) ReportInvoice(invoice string) error {
-	// First check if we have a token and it is valid
-	if n.token == nil || n.token.Expired() {
-		token, err := gateways.GetToken(n.login, n.password, n.signKey, n.exchangeKey, n.taxNumber, n.software)
-		if err != nil {
-			return err
-		}
-		n.token = token
-	}
-
-	// Now we can report the invoice
-	transactionId, err := gateways.ReportInvoice(n.login, n.password, n.taxNumber, n.signKey, n.token.Token, n.software, invoice)
-	if err != nil {
-		return err
-	}
-
-	fmt.Println("Transaction ID: ", transactionId)
-
-	status, err := gateways.GetStatus(n.login, n.password, n.taxNumber, n.signKey, n.software, transactionId)
-	if err != nil {
-		return err
-	}
-	// Print result in xml format for debugging
-	xmlData, err := xml.MarshalIndent(status, "", "  ")
-	if err != nil {
-		return err
-	}
-
-	fmt.Println(string(xmlData))
-	return nil
+// NewUser creates a new User
+func NewUser(login string, password string, signKey string, exchangeKey string, taxNumber string) *gateways.User {
+	return gateways.NewUser(login, password, signKey, exchangeKey, taxNumber)
 }

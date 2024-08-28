@@ -14,9 +14,13 @@ import (
 )
 
 const (
-	charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	charset        = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	RequestVersion = "3.0"
+	HeaderVersion  = "1.0"
 )
 
+// Header is the common header for all requests
+// A new RequestId and Timestamp is generated for each request
 type Header struct {
 	RequestId      string `xml:"common:requestId"`
 	Timestamp      string `xml:"common:timestamp"`
@@ -24,23 +28,28 @@ type Header struct {
 	HeaderVersion  string `xml:"common:headerVersion"`
 }
 
-type User struct {
+// UserRequest is the common user for all requests. Login, PasswordHash and TaxNumber remain the same,
+// while RequestSignature is computed differently for manageInvoice.
+type UserRequest struct {
 	Login            string           `xml:"common:login"`
 	PasswordHash     PasswordHash     `xml:"common:passwordHash"`
 	TaxNumber        string           `xml:"common:taxNumber"`
 	RequestSignature RequestSignature `xml:"common:requestSignature"`
 }
 
+// PasswordHash is the hash of the password
 type PasswordHash struct {
 	CryptoType string `xml:"cryptoType,attr"`
 	Value      string `xml:",chardata"`
 }
 
+// RequestSignature is the signature of the request. It is computed differently for manageInvoice.
 type RequestSignature struct {
 	CryptoType string `xml:"cryptoType,attr"`
 	Value      string `xml:",chardata"`
 }
 
+// Software is the information about the software used for issuing the invoices
 type Software struct {
 	SoftwareId             string `xml:"softwareId"`
 	SoftwareName           string `xml:"softwareName"`
@@ -52,6 +61,7 @@ type Software struct {
 	SoftwareDevTaxNumber   string `xml:"softwareDevTaxNumber"`
 }
 
+// GeneralErrorResponse is the common error response for all requests
 type GeneralErrorResponse struct {
 	XMLName  xml.Name  `xml:"GeneralErrorResponse"`
 	Header   *Header   `xml:"header"`
@@ -59,6 +69,8 @@ type GeneralErrorResponse struct {
 	Software *Software `xml:"software"`
 }
 
+// Result is the common result for all requests
+// If request is OK, only FuncCode is returned
 type Result struct {
 	FuncCode      string         `xml:"funcCode"`
 	ErrorCode     string         `xml:"errorCode,omitempty"`
@@ -66,36 +78,40 @@ type Result struct {
 	Notifications *Notifications `xml:"notifications,omitempty"`
 }
 
+// Notifications is the list of notifications
 type Notifications struct {
 	Notification []*Notification `xml:"notification"`
 }
 
+// Notification includes a code and a text
 type Notification struct {
 	NotificationCode string `xml:"notificationCode"`
 	NotificationText string `xml:"notificationText"`
 }
 
+// NewHeader creates a new Header with the given requestID and timestamp
 func NewHeader(requestID string, timestamp time.Time) *Header {
 	return &Header{
 		RequestId:      requestID,
 		Timestamp:      timestamp.Format("2006-01-02T15:04:05.00Z"),
-		RequestVersion: "3.0",
-		HeaderVersion:  "1.0",
+		RequestVersion: RequestVersion,
+		HeaderVersion:  HeaderVersion,
 	}
 }
 
-func NewUser(userName string, password string, taxNumber string, signKey string, requestID string, timestamp time.Time, options ...string) *User {
+// NewUser creates a new User
+func (g *Client) NewUser(requestID string, timestamp time.Time, options ...string) *UserRequest {
 	signature := ""
 	if len(options) > 0 {
 		base := options[0]
-		signature = computeRequestSignature(requestID, timestamp, signKey, base)
+		signature = computeRequestSignature(requestID, timestamp, g.user.signKey, base)
 	} else {
-		signature = computeRequestSignature(requestID, timestamp, signKey)
+		signature = computeRequestSignature(requestID, timestamp, g.user.signKey)
 	}
-	return &User{
-		Login:        userName,
-		PasswordHash: PasswordHash{CryptoType: "SHA-512", Value: hashPassword(password)},
-		TaxNumber:    taxNumber,
+	return &UserRequest{
+		Login:        g.user.login,
+		PasswordHash: PasswordHash{CryptoType: "SHA-512", Value: hashPassword(g.user.password)},
+		TaxNumber:    g.user.taxNumber,
 		RequestSignature: RequestSignature{
 			CryptoType: "SHA3-512",
 			Value:      signature,
@@ -126,6 +142,7 @@ func computeRequestSignature(requestID string, timestamp time.Time, signKey stri
 
 }
 
+// NewSoftware creates a new Software with the information about the software developer
 func NewSoftware(taxNumber tax.Identity, name string, operation string, version string, devName string, devContact string) *Software {
 
 	if operation != "ONLINE_SERVICE" && operation != "LOCAL_SOFTWARE" {
@@ -152,6 +169,14 @@ func NewSoftwareID(taxNumber tax.Identity) string {
 	lenRandom := 18 - len(taxNumber.String())
 
 	return taxNumber.String() + generateRandomString(lenRandom)
+}
+
+func NewRequestID(timestamp time.Time) string {
+	timeUnique := timestamp.Format("20060102150405")
+
+	randomNumber := rand.Intn(17)
+
+	return timeUnique + generateRandomString(randomNumber)
 }
 
 func generateRandomString(length int) string {

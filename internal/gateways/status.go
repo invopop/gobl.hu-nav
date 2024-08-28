@@ -4,21 +4,17 @@ import (
 	"encoding/xml"
 	"fmt"
 	"time"
-
-	"github.com/go-resty/resty/v2"
 )
 
-const statusEndpoint = "https://api-test.onlineszamla.nav.gov.hu/invoiceService/v3/queryTransactionStatus"
-
 type QueryTransactionStatusRequest struct {
-	XMLName               xml.Name  `xml:"QueryTransactionStatusRequest"`
-	Common                string    `xml:"xmlns:common,attr"`
-	Xmlns                 string    `xml:"xmlns,attr"`
-	Header                *Header   `xml:"common:header"`
-	User                  *User     `xml:"common:user"`
-	Software              *Software `xml:"software"`
-	TransactionId         string    `xml:"transactionId"`
-	ReturnOriginalRequest bool      `xml:"returnOriginalRequest,omitempty"`
+	XMLName               xml.Name     `xml:"QueryTransactionStatusRequest"`
+	Common                string       `xml:"xmlns:common,attr"`
+	Xmlns                 string       `xml:"xmlns,attr"`
+	Header                *Header      `xml:"common:header"`
+	User                  *UserRequest `xml:"common:user"`
+	Software              *Software    `xml:"software"`
+	TransactionId         string       `xml:"transactionId"`
+	ReturnOriginalRequest bool         `xml:"returnOriginalRequest,omitempty"`
 }
 
 type QueryTransactionStatusResponse struct {
@@ -65,32 +61,30 @@ type Pointer struct {
 	OriginalInvoiceNumber string `xml:"originalInvoiceNumber,omitempty"`
 }
 
-func GetStatus(username string, password string, taxNumber string, signKey string, soft *Software, transactionID string) (*ProcessingResult, error) {
-	requestData := NewQueryTransactionStatusRequest(username, password, taxNumber, signKey, soft, transactionID)
-	return QueryTransactionStatus(requestData)
+func (g *Client) GetStatus(transactionID string) ([]*ProcessingResult, error) {
+	requestData := g.newQueryTransactionStatusRequest(transactionID)
+	return g.queryTransactionStatus(requestData)
 }
 
-func NewQueryTransactionStatusRequest(username string, password string, taxNumber string, signKey string, soft *Software, transactionID string) QueryTransactionStatusRequest {
+func (g *Client) newQueryTransactionStatusRequest(transactionID string) QueryTransactionStatusRequest {
 	timestamp := time.Now().UTC()
-	requestID := generateRandomString(20)
+	requestID := NewRequestID(timestamp)
 	return QueryTransactionStatusRequest{
 		Xmlns:         "http://schemas.nav.gov.hu/OSA/3.0/api",
 		Common:        "http://schemas.nav.gov.hu/NTCA/1.0/common",
 		Header:        NewHeader(requestID, timestamp),
-		User:          NewUser(username, password, taxNumber, signKey, requestID, timestamp),
-		Software:      soft,
+		User:          g.NewUser(requestID, timestamp),
+		Software:      g.software,
 		TransactionId: transactionID,
 	}
 }
 
-func QueryTransactionStatus(requestData QueryTransactionStatusRequest) (*ProcessingResult, error) {
-	client := resty.New()
-
-	resp, err := client.R().
+func (g *Client) queryTransactionStatus(requestData QueryTransactionStatusRequest) ([]*ProcessingResult, error) {
+	resp, err := g.rest.R().
 		SetHeader("Content-Type", "application/xml").
 		SetHeader("Accept", "application/xml").
 		SetBody(requestData).
-		Post(statusEndpoint)
+		Post(StatusEndpoint)
 
 	if err != nil {
 		return nil, err
@@ -103,7 +97,7 @@ func QueryTransactionStatus(requestData QueryTransactionStatusRequest) (*Process
 			return nil, err
 		}
 
-		return queryTransactionStatusResponse.ProcessingResults.ProcessingResult[0], nil
+		return queryTransactionStatusResponse.ProcessingResults.ProcessingResult, nil
 	}
 
 	var generalErrorResponse GeneralErrorResponse

@@ -6,12 +6,6 @@ import (
 	"encoding/xml"
 	"fmt"
 	"time"
-
-	"github.com/go-resty/resty/v2"
-)
-
-const (
-	tokenExchangeEndpoint = "https://api-test.onlineszamla.nav.gov.hu/invoiceService/v3/tokenExchange"
 )
 
 type TokenInfo struct {
@@ -20,12 +14,12 @@ type TokenInfo struct {
 }
 
 type TokenExchangeRequest struct {
-	XMLName  xml.Name  `xml:"TokenExchangeRequest"`
-	Common   string    `xml:"xmlns:common,attr"`
-	Xmlns    string    `xml:"xmlns,attr"`
-	Header   *Header   `xml:"common:header"`
-	User     *User     `xml:"common:user"`
-	Software *Software `xml:"software"`
+	XMLName  xml.Name     `xml:"TokenExchangeRequest"`
+	Common   string       `xml:"xmlns:common,attr"`
+	Xmlns    string       `xml:"xmlns,attr"`
+	Header   *Header      `xml:"common:header"`
+	User     *UserRequest `xml:"common:user"`
+	Software *Software    `xml:"software"`
 }
 
 type TokenExchangeResponse struct {
@@ -38,29 +32,30 @@ type TokenExchangeResponse struct {
 	TokenValidityTo      string    `xml:"tokenValidityTo"`
 }
 
-func GetToken(userName string, password string, signKey string, exchangeKey string, taxNumber string, soft *Software) (*TokenInfo, error) {
-	requestData := newTokenExchangeRequest(userName, password, signKey, taxNumber, soft)
-	token, err := postTokenExchangeRequest(requestData)
+func (g *Client) GetToken() error {
+	requestData := g.newTokenExchangeRequest()
+
+	token, err := g.postTokenExchangeRequest(requestData)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	err = token.decrypt(exchangeKey)
+	err = token.decrypt(g.user.exchangeKey)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return token, nil
+	g.token = token
+
+	return nil
 }
 
-func postTokenExchangeRequest(requestData TokenExchangeRequest) (*TokenInfo, error) {
-	client := resty.New()
-
-	resp, err := client.R().
+func (g *Client) postTokenExchangeRequest(requestData TokenExchangeRequest) (*TokenInfo, error) {
+	resp, err := g.rest.R().
 		SetHeader("Content-Type", "application/xml").
 		SetHeader("Accept", "application/xml").
 		SetBody(requestData).
-		Post(tokenExchangeEndpoint)
+		Post(TokenExchangeEndpoint)
 
 	if err != nil {
 		return nil, err
@@ -98,15 +93,15 @@ func postTokenExchangeRequest(requestData TokenExchangeRequest) (*TokenInfo, err
 
 }
 
-func newTokenExchangeRequest(userName string, password string, signKey string, taxNumber string, soft *Software) TokenExchangeRequest {
+func (g *Client) newTokenExchangeRequest() TokenExchangeRequest {
 	timestamp := time.Now().UTC()
-	requestID := generateRandomString(20) //This must be unique for each request
+	requestID := NewRequestID(timestamp) //This must be unique for each request
 	return TokenExchangeRequest{
-		Xmlns:    "http://schemas.nav.gov.hu/OSA/3.0/api",
-		Common:   "http://schemas.nav.gov.hu/NTCA/1.0/common",
+		Xmlns:    APIXMNLS,
+		Common:   APICommon,
 		Header:   NewHeader(requestID, timestamp),
-		User:     NewUser(userName, password, taxNumber, signKey, requestID, timestamp),
-		Software: soft,
+		User:     g.NewUser(requestID, timestamp),
+		Software: g.software,
 	}
 }
 
