@@ -53,16 +53,26 @@ type Software struct {
 }
 
 type GeneralErrorResponse struct {
-	XMLName  xml.Name     `xml:"GeneralErrorResponse"`
-	Header   *Header      `xml:"header"`
-	Result   *ErrorResult `xml:"result"`
-	Software *Software    `xml:"software"`
+	XMLName  xml.Name  `xml:"GeneralErrorResponse"`
+	Header   *Header   `xml:"header"`
+	Result   *Result   `xml:"result"`
+	Software *Software `xml:"software"`
 }
 
-type ErrorResult struct {
-	FuncCode  string `xml:"funcCode"`
-	ErrorCode string `xml:"errorCode"`
-	Message   string `xml:"message"`
+type Result struct {
+	FuncCode      string         `xml:"funcCode"`
+	ErrorCode     string         `xml:"errorCode,omitempty"`
+	Message       string         `xml:"message,omitempty"`
+	Notifications *Notifications `xml:"notifications,omitempty"`
+}
+
+type Notifications struct {
+	Notification []*Notification `xml:"notification"`
+}
+
+type Notification struct {
+	NotificationCode string `xml:"notificationCode"`
+	NotificationText string `xml:"notificationText"`
 }
 
 func NewHeader(requestID string, timestamp time.Time) *Header {

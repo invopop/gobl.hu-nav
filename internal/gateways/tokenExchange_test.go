@@ -1,6 +1,7 @@
 package gateways
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"testing"
@@ -40,5 +41,7 @@ func TestNewTokenExchangeRequest(t *testing.T) {
 	// Assert results
 	require.NoError(t, err, "Expected no error from NewTokenExchangeRequest")
 	assert.NotNil(t, token, "Expected non-empty token from NewTokenExchangeRequest")
+
+	fmt.Println("Token: ", token.Token)
 
 }

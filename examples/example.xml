@@ -1,22 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <InvoiceData xmlns="http://schemas.nav.gov.hu/OSA/3.0/data" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://schemas.nav.gov.hu/OSA/3.0/data invoiceData.xsd"
 xmlns:common="http://schemas.nav.gov.hu/NTCA/1.0/common" xmlns:base="http://schemas.nav.gov.hu/OSA/3.0/base" >
-	<invoiceNumber>ZZZ000015</invoiceNumber>
-	<invoiceIssueDate>2021-05-25</invoiceIssueDate>
+	<invoiceNumber>SZ00004</invoiceNumber>
+	<invoiceIssueDate>2021-05-15</invoiceIssueDate>
 	<completenessIndicator>false</completenessIndicator>
 	<invoiceMain>
 		<invoice>
-			<invoiceReference>
-				<originalInvoiceNumber>ZZZ000001</originalInvoiceNumber>
-				<modifyWithoutMaster>false</modifyWithoutMaster>
-				<modificationIndex>2</modificationIndex>
-			</invoiceReference>
 			<invoiceHead>
 				<supplierInfo>
 					<supplierTaxNumber>
-						<base:taxpayerId>99999999</base:taxpayerId>
-						<base:vatCode>2</base:vatCode>
-						<base:countyCode>41</base:countyCode>
+						<base:taxpayerId>26763453</base:taxpayerId>
+						<base:vatCode>1</base:vatCode>
+						<base:countyCode>20</base:countyCode>
 					</supplierTaxNumber>
 					<supplierName>Értékesítő Kft</supplierName>
 					<supplierAddress>
@@ -53,20 +48,42 @@ xmlns:common="http://schemas.nav.gov.hu/NTCA/1.0/common" xmlns:base="http://sche
 					</customerAddress>
 				</customerInfo>
 				<invoiceDetail>
-<!-- Amennyiben a módosítás az invoiceDetail valamely elemét érinti, úgy az eredeti számla nem változó adatait is meg kell ismételni-->				
 					<invoiceCategory>NORMAL</invoiceCategory>
-					<invoiceDeliveryDate>2021-05-10</invoiceDeliveryDate>
+					<invoiceDeliveryDate>2021-05-15</invoiceDeliveryDate>
+					<smallBusinessIndicator>true</smallBusinessIndicator>
 					<currencyCode>HUF</currencyCode>
 					<exchangeRate>1</exchangeRate>
 					<paymentMethod>TRANSFER</paymentMethod>
+					<paymentDate>2021-05-10</paymentDate>
 					<invoiceAppearance>PAPER</invoiceAppearance>
-					<additionalInvoiceData>
-						<dataName>M00001_S0102</dataName>
-						<dataDescription>Módosítás oka</dataDescription>
-						<dataValue>A ZZ000001 számla teljesítési időpontja 2021.05.10 a ZZZ000009 módosítón jelzett dátummal szemben. A számla korábban már módosított egyéb adatai változatlanok</dataValue>
-					</additionalInvoiceData>
 				</invoiceDetail>
 			</invoiceHead>
+			<invoiceLines>
+				<mergedItemIndicator>false</mergedItemIndicator>
+				<line>
+					<!-- A számlatétel tartalma a természetes mértékegység használatakor -->
+					<lineNumber>1</lineNumber>
+					<advanceData>
+						<advanceIndicator>true</advanceIndicator>
+					</advanceData>
+					<lineExpressionIndicator>true</lineExpressionIndicator>
+					<lineNatureIndicator>PRODUCT</lineNatureIndicator>
+					<lineDescription>Konyhabútor C típus</lineDescription>
+					<quantity>1</quantity>
+					<unitOfMeasure>PIECE</unitOfMeasure>
+					<unitPrice>600000.00</unitPrice>
+					<unitPriceHUF>600000.00</unitPriceHUF>
+					<lineAmountsNormal>
+						<lineNetAmountData>
+							<lineNetAmount>600000.00</lineNetAmount>
+							<lineNetAmountHUF>600000.00</lineNetAmountHUF>
+						</lineNetAmountData>
+						<lineVatRate>
+							<vatPercentage>0.27</vatPercentage>
+						</lineVatRate>
+					</lineAmountsNormal>
+				</line>
+			</invoiceLines>
 			<invoiceSummary>
 				<summaryNormal>
 					<summaryByVatRate>
@@ -74,22 +91,26 @@ xmlns:common="http://schemas.nav.gov.hu/NTCA/1.0/common" xmlns:base="http://sche
 							<vatPercentage>0.27</vatPercentage>
 						</vatRate>
 						<vatRateNetData>
-							<vatRateNetAmount>0</vatRateNetAmount>
-							<vatRateNetAmountHUF>0</vatRateNetAmountHUF>
+							<vatRateNetAmount>600000.00</vatRateNetAmount>
+							<vatRateNetAmountHUF>600000.00</vatRateNetAmountHUF>
 						</vatRateNetData>
 						<vatRateVatData>
-							<vatRateVatAmount>0</vatRateVatAmount>
-							<vatRateVatAmountHUF>0</vatRateVatAmountHUF>
+							<vatRateVatAmount>162000.00</vatRateVatAmount>
+							<vatRateVatAmountHUF>162000.00</vatRateVatAmountHUF>
 						</vatRateVatData>
+						<vatRateGrossData>
+							<vatRateGrossAmount>762000.00</vatRateGrossAmount>
+							<vatRateGrossAmountHUF>762000.00</vatRateGrossAmountHUF>
+						</vatRateGrossData>
 					</summaryByVatRate>
-					<invoiceNetAmount>0</invoiceNetAmount>
-					<invoiceNetAmountHUF>0</invoiceNetAmountHUF>
-					<invoiceVatAmount>0</invoiceVatAmount>
-					<invoiceVatAmountHUF>0</invoiceVatAmountHUF>
+					<invoiceNetAmount>600000</invoiceNetAmount>
+					<invoiceNetAmountHUF>600000</invoiceNetAmountHUF>
+					<invoiceVatAmount>162000</invoiceVatAmount>
+					<invoiceVatAmountHUF>162000</invoiceVatAmountHUF>
 				</summaryNormal>
 				<summaryGrossData>
-					<invoiceGrossAmount>0</invoiceGrossAmount>
-					<invoiceGrossAmountHUF>0</invoiceGrossAmountHUF>
+					<invoiceGrossAmount>762000</invoiceGrossAmount>
+					<invoiceGrossAmountHUF>762000</invoiceGrossAmountHUF>
 				</summaryGrossData>
 			</invoiceSummary>
 		</invoice>

@@ -21,7 +21,7 @@ func TestReportInvoice(t *testing.T) {
 		"ONLINE_SERVICE",
 		"1.0.0",
 		"TestDev",
-		"dev@test.com",
+		"pablo.menendez@invopop.com",
 	)
 
 	err := godotenv.Load(".env")

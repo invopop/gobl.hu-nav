@@ -52,7 +52,7 @@ type ManageInvoiceResponse struct {
 	TransactionId string    `xml:"transactionId"`
 }
 
-func ReportInvoice(username string, password string, taxNumber string, signKey string, exchangeToken string, soft *Software, invoice string) error {
+func ReportInvoice(username string, password string, taxNumber string, signKey string, exchangeToken string, soft *Software, invoice string) (string, error) {
 	requestData := NewManageInvoiceRequest(username, password, taxNumber, signKey, exchangeToken, soft, invoice)
 	return PostManageInvoiceRequest(requestData)
 }
@@ -81,7 +81,7 @@ func NewManageInvoiceRequest(username string, password string, taxNumber string,
 	}
 }
 
-func PostManageInvoiceRequest(requestData ManageInvoiceRequest) error {
+func PostManageInvoiceRequest(requestData ManageInvoiceRequest) (string, error) {
 	client := resty.New()
 
 	resp, err := client.R().
@@ -91,23 +91,23 @@ func PostManageInvoiceRequest(requestData ManageInvoiceRequest) error {
 		Post(manageInvoiceEndpoint)
 
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	if resp.StatusCode() == 200 {
 		var manageInvoiceResponse ManageInvoiceResponse
 		err = xml.Unmarshal(resp.Body(), &manageInvoiceResponse)
 		if err != nil {
-			return err
+			return "", err
 		}
-		return nil
+		return manageInvoiceResponse.TransactionId, nil
 	}
 
 	var generalErrorResponse GeneralErrorResponse
 	err = xml.Unmarshal(resp.Body(), &generalErrorResponse)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	return fmt.Errorf("error code: %s, message: %s", resp.Status(), generalErrorResponse.Result.ErrorCode)
+	return "", fmt.Errorf("error code: %s, message: %s", resp.Status(), generalErrorResponse.Result.ErrorCode)
 }

@@ -1,6 +1,9 @@
 package nav
 
 import (
+	"encoding/xml"
+	"fmt"
+
 	"github.com/invopop/gobl.hu-nav/internal/gateways"
 	"github.com/invopop/gobl/tax"
 )
@@ -41,9 +44,23 @@ func (n *nav) ReportInvoice(invoice string) error {
 	}
 
 	// Now we can report the invoice
-	err := gateways.ReportInvoice(n.login, n.password, n.taxNumber, n.signKey, n.token.Token, n.software, invoice)
+	transactionId, err := gateways.ReportInvoice(n.login, n.password, n.taxNumber, n.signKey, n.token.Token, n.software, invoice)
 	if err != nil {
 		return err
 	}
+
+	fmt.Println("Transaction ID: ", transactionId)
+
+	status, err := gateways.GetStatus(n.login, n.password, n.taxNumber, n.signKey, n.software, transactionId)
+	if err != nil {
+		return err
+	}
+	// Print result in xml format for debugging
+	xmlData, err := xml.MarshalIndent(status, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(string(xmlData))
 	return nil
 }

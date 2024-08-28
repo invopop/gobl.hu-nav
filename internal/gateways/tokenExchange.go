@@ -38,10 +38,6 @@ type TokenExchangeResponse struct {
 	TokenValidityTo      string    `xml:"tokenValidityTo"`
 }
 
-type Result struct {
-	FuncCode string `xml:"funcCode"`
-}
-
 func GetToken(userName string, password string, signKey string, exchangeKey string, taxNumber string, soft *Software) (*TokenInfo, error) {
 	requestData := newTokenExchangeRequest(userName, password, signKey, taxNumber, soft)
 	token, err := postTokenExchangeRequest(requestData)
@@ -77,14 +73,18 @@ func postTokenExchangeRequest(requestData TokenExchangeRequest) (*TokenInfo, err
 			return nil, err
 		}
 
-		time, err := time.Parse("2006-01-02T15:04:05.000Z", tokenExchangeResponse.TokenValidityTo)
+		var expirationTime time.Time
+		expirationTime, err = time.Parse("2006-01-02T15:04:05.000Z", tokenExchangeResponse.TokenValidityTo)
 		if err != nil {
-			return nil, err
+			expirationTime, err = time.Parse("2006-01-02T15:04:05.00Z", tokenExchangeResponse.TokenValidityTo)
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		return &TokenInfo{
 			Token:      tokenExchangeResponse.EncodedExchangeToken,
-			Expiration: time,
+			Expiration: expirationTime,
 		}, nil
 	}
 
