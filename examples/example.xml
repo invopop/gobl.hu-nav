@@ -9,7 +9,7 @@ xmlns:common="http://schemas.nav.gov.hu/NTCA/1.0/common" xmlns:base="http://sche
 			<invoiceHead>
 				<supplierInfo>
 					<supplierTaxNumber>
-						<base:taxpayerId>26763453</base:taxpayerId>
+						<base:taxpayerId>12345678</base:taxpayerId>
 						<base:vatCode>1</base:vatCode>
 						<base:countyCode>20</base:countyCode>
 					</supplierTaxNumber>
