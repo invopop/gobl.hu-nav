@@ -1,5 +1,11 @@
 package doc
 
+import (
+	"github.com/invopop/gobl/bill"
+	"github.com/invopop/gobl/num"
+	"github.com/invopop/gobl/tax"
+)
+
 // Depends wether the invoice is simplified or not
 type InvoiceSummary struct {
 	SummaryNormal *SummaryNormal `xml:"summaryNormal,omitempty"`
@@ -32,21 +38,25 @@ type VatRateVatData struct {
 	VatRateVatAmountHUF string `xml:"vatRateVatAmountHUF"`
 }
 
-/*func newSummaryByVatRate(rate *tax.RateTotal, info *taxInfo, ex float64) *SummaryByVatRate {
+func newSummaryByVatRate(rate *tax.RateTotal, info *taxInfo, ex float64) (*SummaryByVatRate, error) {
+	vatRate, err := NewVatRate(rate, info)
+	if err != nil {
+		return nil, err
+	}
 	return &SummaryByVatRate{
-		VatRate: NewVatRate(rate, info),
+		VatRate: vatRate,
 		VatRateNetData: &VatRateNetData{
 			VatRateNetAmount:    rate.Base.Rescale(2).String(),
-			VatRateNetAmountHUF: amountToHUF(rate.Base, ex),
+			VatRateNetAmountHUF: amountToHUF(rate.Base, ex).String(),
 		},
 		VatRateVatData: &VatRateVatData{
 			VatRateVatAmount:    rate.Amount.Rescale(2).String(),
-			VatRateVatAmountHUF: amountToHUF(rate.Amount, ex),
+			VatRateVatAmountHUF: amountToHUF(rate.Amount, ex).String(),
 		},
-	}
-}*/
+	}, nil
+}
 
-/*func NewInvoiceSummary(inv *bill.Invoice) (*InvoiceSummary, error) {
+func NewInvoiceSummary(inv *bill.Invoice) (*InvoiceSummary, error) {
 	vat := inv.Totals.Taxes.Category(tax.CategoryVAT)
 	totalVat := num.MakeAmount(0, 5)
 	summaryVat := []*SummaryByVatRate{}
@@ -57,7 +67,11 @@ type VatRateVatData struct {
 		return nil, err
 	}
 	for _, rate := range vat.Rates {
-		summaryVat = append(summaryVat, newSummaryByVatRate(rate, taxInfo, ex))
+		summary, err := newSummaryByVatRate(rate, taxInfo, ex)
+		if err != nil {
+			return nil, err
+		}
+		summaryVat = append(summaryVat, summary)
 		totalVat = totalVat.Add(rate.Amount)
 	}
 
@@ -65,10 +79,10 @@ type VatRateVatData struct {
 		SummaryNormal: &SummaryNormal{
 			SummaryByVatRate:    summaryVat,
 			InvoiceNetAmount:    inv.Totals.Total.Rescale(2).String(),
-			InvoiceNetAmountHUF: amountToHUF(inv.Totals.Total, ex),
+			InvoiceNetAmountHUF: amountToHUF(inv.Totals.Total, ex).String(),
 			InvoiceVatAmount:    totalVat.Rescale(2).String(),
-			InvoiceVatAmountHUF: amountToHUF(totalVat, ex),
+			InvoiceVatAmountHUF: amountToHUF(totalVat, ex).String(),
 		},
 	}, nil
 
-}*/
+}

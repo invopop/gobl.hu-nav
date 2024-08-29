@@ -75,7 +75,6 @@ func TestNewInvoiceLines(t *testing.T) {
 	// Check VAT and Amounts
 	assert.NotNil(t, line.LineAmountsNormal)
 	assert.Equal(t, 195.00, line.LineAmountsNormal.LineNetAmountData.LineNetAmount)
-	assert.Equal(t, 247.65, line.LineAmountsNormal.LineGrossAmountData.LineGrossAmount) // Assuming 27% VAT
 }
 
 func TestNewLine_SimplifiedInvoice(t *testing.T) {

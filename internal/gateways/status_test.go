@@ -39,7 +39,7 @@ func TestQueryTransactionStatus(t *testing.T) {
 
 	client := New(user, software, Environment("testing"))
 
-	result, err := client.GetStatus("4OYE2J5GEOGWKMYV")
+	result, err := client.GetStatus("4P0TNGVKJM2HV0C3")
 
 	// Assert the results
 	assert.NoError(t, err)

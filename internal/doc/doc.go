@@ -11,6 +11,14 @@ import (
 <InvoiceData xmlns="http://schemas.nav.gov.hu/OSA/3.0/data" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://schemas.nav.gov.hu/OSA/3.0/data invoiceData.xsd"
 xmlns:common="http://schemas.nav.gov.hu/NTCA/1.0/common" xmlns:base="http://schemas.nav.gov.hu/OSA/3.0/base" >*/
 
+const (
+	XMNLSDATA     = "http://schemas.nav.gov.hu/OSA/3.0/data"
+	XMNLSCOMMON   = "http://schemas.nav.gov.hu/NTCA/1.0/common"
+	XMNLBASE      = "http://schemas.nav.gov.hu/OSA/3.0/base"
+	XMNLXSI       = "http://www.w3.org/2001/XMLSchema-instance"
+	XSIDataSchema = "http://schemas.nav.gov.hu/OSA/3.0/data invoiceData.xsd"
+)
+
 // Standard error responses.
 var (
 	ErrNotHungarian           = newValidationError("only hungarian invoices are supported")
@@ -35,12 +43,12 @@ func newValidationError(text string) error {
 }
 
 type Document struct {
-	XMLName xml.Name `xml:"InvoiceData"`
-	XMLNS   string   `xml:"xmlns,attr"`
-	//XMLNSXsi              string       `xml:"xmlns:xsi,attr"`
-	//XSISchema             string       `xml:"xsi:schemaLocation,attr"`
-	//XMLNSCommon           string       `xml:"xmlns:common,attr"`
-	//XMLNSBase             string       `xml:"xmlns:base,attr"`
+	XMLName               xml.Name     `xml:"InvoiceData"`
+	XMLNS                 string       `xml:"xmlns,attr"`
+	XMLNSXsi              string       `xml:"xmlns:xsi,attr"`
+	XSISchema             string       `xml:"xsi:schemaLocation,attr"`
+	XMLNSCommon           string       `xml:"xmlns:common,attr"`
+	XMLNSBase             string       `xml:"xmlns:base,attr"`
 	InvoiceNumber         string       `xml:"invoiceNumber"`
 	InvoiceIssueDate      string       `xml:"invoiceIssueDate"`
 	CompletenessIndicator bool         `xml:"completenessIndicator"` // Indicates whether the data report is the invoice itself
@@ -50,11 +58,11 @@ type Document struct {
 // Convert it to XML before returning
 func NewDocument(inv *bill.Invoice) *Document {
 	d := new(Document)
-	d.XMLNS = "http://schemas.nav.gov.hu/OSA/3.0/data"
-	//d.XMLNSXsi = "http://www.w3.org/2001/XMLSchema-instance"
-	//d.XSISchema = "http://schemas.nav.gov.hu/OSA/3.0/data invoiceData.xsd"
-	//d.XMLNSCommon = "http://schemas.nav.gov.hu/NTCA/1.0/common"
-	//d.XMLNSBase = "http://schemas.nav.gov.hu/OSA/3.0/base"
+	d.XMLNS = XMNLSDATA
+	d.XMLNSXsi = XMNLXSI
+	d.XSISchema = XSIDataSchema
+	d.XMLNSCommon = XMNLSCOMMON
+	d.XMLNSBase = XMNLBASE
 	d.InvoiceNumber = inv.Code
 	d.InvoiceIssueDate = inv.IssueDate.String()
 	d.CompletenessIndicator = false

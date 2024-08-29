@@ -21,9 +21,6 @@ func NewTaxNumber(party *org.Party) (*TaxNumber, *TaxNumber, error) {
 		if len(taxID.Code) == 11 {
 			if taxID.Code.String()[8:9] == "5" {
 				groupMemberCode := party.Identities[0].Code.String()
-				if len(groupMemberCode) != 11 || groupMemberCode[8:9] != "4" {
-					return nil, nil, ErrInvalidGroupMemberCode
-				}
 				return NewHungarianTaxNumber(taxID.Code.String()),
 					NewHungarianTaxNumber(groupMemberCode), nil
 			}

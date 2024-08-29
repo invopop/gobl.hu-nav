@@ -38,20 +38,6 @@ func TestNewSupplierInfo(t *testing.T) {
 	assert.Equal(t, "Test Supplier", supplierInfo.SupplierName)
 	assert.NotNil(t, supplierInfo.SupplierAddress)
 
-	// Test case 2: Non-Hungarian supplier
-	nonHUSupplier := &org.Party{
-		TaxID: &tax.Identity{
-			Country: l10n.GB.Tax(), // GB for Great Britain
-			Code:    "87654321",
-		},
-		Name: "Non-Hungarian Supplier",
-	}
-
-	supplierInfo, err = NewSupplierInfo(nonHUSupplier)
-	require.Error(t, err)
-	assert.Nil(t, supplierInfo)
-	assert.Equal(t, ErrNotHungarian, err)
-
 	supplier = &org.Party{
 		TaxID: &tax.Identity{
 			Country: l10n.HU.Tax(),

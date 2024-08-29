@@ -21,9 +21,9 @@ type VatData struct {
 }
 
 type CustomerTaxNumber struct {
-	TaxPayerID           string     `xml:"taxpayerId"`
-	VatCode              string     `xml:"vatCode,omitempty"`
-	CountyCode           string     `xml:"countyCode,omitempty"`
+	TaxPayerID           string     `xml:"base:taxpayerId"`
+	VatCode              string     `xml:"base:vatCode,omitempty"`
+	CountyCode           string     `xml:"base:countyCode,omitempty"`
 	GroupMemberTaxNumber *TaxNumber `xml:"groupMemberTaxNumber,omitempty"`
 }
 

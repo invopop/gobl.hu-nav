@@ -41,7 +41,7 @@ func TestReportInvoice(t *testing.T) {
 
 	navClient := NewNav(user, software, InTesting())
 
-	xmlContent, err := os.ReadFile("examples/example.xml")
+	xmlContent, err := os.ReadFile("test/data/out/output.xml")
 	if err != nil {
 		t.Fatalf("Failed to read sample invoice file: %v", err)
 	}
@@ -50,6 +50,8 @@ func TestReportInvoice(t *testing.T) {
 	navClient.FetchToken()
 
 	transactionId, err := navClient.ReportInvoice(encodedInvoice)
+
+	fmt.Println("Transaction ID: ", transactionId)
 
 	// Assert the result
 	if err != nil {

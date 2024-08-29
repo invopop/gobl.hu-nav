@@ -22,11 +22,11 @@ type Line struct {
 	LineExpressionIndicator bool                   `xml:"lineExpressionIndicator"`       // true if the quantity unit of the item can be expressed as a natural unit of measurement
 	LineNatureIndicator     string                 `xml:"lineNatureIndicator,omitempty"` // Denotes sale of product or service
 	LineDescription         string                 `xml:"lineDescription,omitempty"`
-	Quantity                float64                `xml:"quantity,omitempty"`
+	Quantity                string                 `xml:"quantity,omitempty"`
 	UnitOfMeasure           string                 `xml:"unitOfMeasure,omitempty"`
 	UnitOfMeasureOwn        string                 `xml:"unitOfMeasureOwn,omitempty"` // Own quantity unit
-	UnitPrice               float64                `xml:"unitPrice,omitempty"`
-	UnitPriceHUF            float64                `xml:"unitPriceHUF,omitempty"`
+	UnitPrice               string                 `xml:"unitPrice,omitempty"`
+	UnitPriceHUF            string                 `xml:"unitPriceHUF,omitempty"`
 	LineDiscountData        *LineDiscountData      `xml:"lineDiscountData,omitempty"`
 	LineAmountsNormal       *LineAmountsNormal     `xml:"lineAmountsNormal,omitempty"`     // For normal or aggregate invoices
 	LineAmountsSimplified   *LineAmountsSimplified `xml:"lineAmountsSimplified,omitempty"` // For simplified invoices
@@ -56,9 +56,9 @@ type ProductCode struct {
 }
 
 type LineDiscountData struct {
-	DiscountDescription string  `xml:"discountDescription"`
-	DiscountValue       float64 `xml:"discountValue"`
-	DiscountRate        float64 `xml:"discountRate"`
+	DiscountDescription string `xml:"discountDescription"`
+	DiscountValue       string `xml:"discountValue"`
+	DiscountRate        string `xml:"discountRate"`
 }
 
 type LineAmountsNormal struct {
@@ -69,25 +69,25 @@ type LineAmountsNormal struct {
 }
 
 type LineNetAmountData struct {
-	LineNetAmount    float64 `xml:"lineNetAmount"`
-	LineNetAmountHUF float64 `xml:"lineNetAmountHUF"`
+	LineNetAmount    string `xml:"lineNetAmount"`
+	LineNetAmountHUF string `xml:"lineNetAmountHUF"`
 }
 
 type LineVatData struct {
-	LineVatAmount    float64 `xml:"lineVatAmount"`
-	LineVatAmountHUF float64 `xml:"lineVatAmountHUF"`
+	LineVatAmount    string `xml:"lineVatAmount"`
+	LineVatAmountHUF string `xml:"lineVatAmountHUF"`
 }
 
 // LineGrossAmountData is the Net amount + VAT amount (Not mandatory)
 type LineGrossAmountData struct {
-	LineGrossAmount    float64 `xml:"lineGrossAmount"`
-	LineGrossAmountHUF float64 `xml:"lineGrossAmountHUF"`
+	LineGrossAmount    string `xml:"lineGrossAmount"`
+	LineGrossAmountHUF string `xml:"lineGrossAmountHUF"`
 }
 
 type LineAmountsSimplified struct {
 	LineVatRate                  *VatRate `xml:"lineVatRate"`
-	LineGrossAmountSimplified    float64  `xml:"lineGrossAmountSimplified"` //This amount is the net amount of the normal line
-	LineGrossAmountSimplifiedHUF float64  `xml:"lineGrossAmountSimplifiedHUF"`
+	LineGrossAmountSimplified    string   `xml:"lineGrossAmountSimplified"` //This amount is the net amount of the normal line
+	LineGrossAmountSimplifiedHUF string   `xml:"lineGrossAmountSimplifiedHUF"`
 }
 
 var codeCategories = []string{
@@ -125,9 +125,9 @@ func NewLine(line *bill.Line, info *taxInfo, rate float64) (*Line, error) {
 		LineNumber:              line.Index,
 		LineExpressionIndicator: false,
 		LineDescription:         line.Item.Name,
-		UnitPrice:               line.Item.Price.Float64(),
-		UnitPriceHUF:            amountToHUF(line.Item.Price, rate).Float64(),
-		Quantity:                line.Quantity.Float64(),
+		UnitPrice:               line.Item.Price.String(),
+		UnitPriceHUF:            amountToHUF(line.Item.Price, rate).String(),
+		Quantity:                line.Quantity.String(),
 	}
 
 	if line.Item.Identities != nil {
@@ -160,10 +160,12 @@ func NewLine(line *bill.Line, info *taxInfo, rate float64) (*Line, error) {
 	if line.Discounts != nil {
 		discount := &LineDiscountData{}
 		discount.DiscountDescription = ""
+		discountValue := 0.0
 		for _, dis := range line.Discounts {
 			discount.DiscountDescription += dis.Reason + ". "
-			discount.DiscountValue += dis.Amount.Float64()
+			discountValue += dis.Amount.Float64()
 		}
+		discount.DiscountValue = num.AmountFromFloat64(discountValue, 2).String()
 		lineNav.LineDiscountData = discount
 	}
 
@@ -172,33 +174,21 @@ func NewLine(line *bill.Line, info *taxInfo, rate float64) (*Line, error) {
 		if info.simplifiedInvoice {
 			vatAmount := line.Total.Multiply(vatCombo.Percent.Amount())
 			lineNav.LineAmountsSimplified = &LineAmountsSimplified{
-				LineVatRate:                  &VatRate{VatContent: vatAmount.Rescale(4).Float64()},
-				LineGrossAmountSimplified:    line.Total.Rescale(2).Float64(),
-				LineGrossAmountSimplifiedHUF: amountToHUF(line.Total, rate).Float64(),
+				LineVatRate:                  &VatRate{VatContent: vatAmount.Rescale(2).String()},
+				LineGrossAmountSimplified:    line.Total.Rescale(2).String(),
+				LineGrossAmountSimplifiedHUF: amountToHUF(line.Total, rate).String(),
 			}
 		} else {
 			vatRate, err := NewVatRate(vatCombo, info)
 			if err != nil {
 				return nil, err
 			}
-			vatAmount := num.AmountZero
-			if vatCombo.Percent != nil {
-				vatAmount = line.Total.Multiply(vatCombo.Percent.Amount()).Rescale(2)
-			}
 			lineNav.LineAmountsNormal = &LineAmountsNormal{
 				LineNetAmountData: &LineNetAmountData{
-					LineNetAmount:    line.Total.Rescale(2).Float64(),
-					LineNetAmountHUF: amountToHUF(line.Total, rate).Float64(),
+					LineNetAmount:    line.Total.Rescale(2).String(),
+					LineNetAmountHUF: amountToHUF(line.Total, rate).String(),
 				},
 				LineVatRate: vatRate,
-				LineVatData: &LineVatData{
-					LineVatAmount:    vatAmount.Float64(),
-					LineVatAmountHUF: amountToHUF(vatAmount, rate).Float64(),
-				},
-				LineGrossAmountData: &LineGrossAmountData{
-					LineGrossAmount:    line.Total.Add(vatAmount).Rescale(2).Float64(),
-					LineGrossAmountHUF: amountToHUF(line.Total.Add(vatAmount), rate).Float64(),
-				},
 			}
 		}
 	}

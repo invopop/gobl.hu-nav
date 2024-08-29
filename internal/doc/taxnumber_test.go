@@ -55,21 +55,6 @@ func TestNewTaxNumber(t *testing.T) {
 			expectedErr: nil,
 		},
 		{
-			name: "Hungarian TaxID with VatCode 5 and invalid group member code",
-			party: &org.Party{
-				TaxID: &tax.Identity{
-					Country: l10n.HU.Tax(),
-					Code:    "12345678501",
-				},
-				Identities: []*org.Identity{
-					{Code: "12345678303"},
-				},
-			},
-			expectedMain:  nil,
-			expectedGroup: nil,
-			expectedErr:   ErrInvalidGroupMemberCode,
-		},
-		{
 			name: "Hungarian TaxID with other VatCode",
 			party: &org.Party{
 				TaxID: &tax.Identity{

@@ -23,7 +23,7 @@ func TestNewVatRate(t *testing.T) {
 			},
 			info: &taxInfo{},
 			expected: &VatRate{
-				VatPercentage: 0.27,
+				VatPercentage: "0.27",
 			},
 			expectErr: false,
 		},
@@ -34,7 +34,7 @@ func TestNewVatRate(t *testing.T) {
 			},
 			info: &taxInfo{simplifiedInvoice: true},
 			expected: &VatRate{
-				VatContent: 100,
+				VatContent: "100.00",
 			},
 			expectErr: false,
 		},

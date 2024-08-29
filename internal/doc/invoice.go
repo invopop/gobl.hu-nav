@@ -10,7 +10,7 @@ type InvoiceMain struct {
 }
 
 type Invoice struct {
-	//InvoiceReference  InvoiceReference  `xml:"invoiceReference,omitempty"` // Used for invoice modification
+	//InvoiceReference  InvoiceReference  `xml:"invoiceReference,omitempty"` // Used for invoice modification (reference other invoice)
 	InvoiceHead  *InvoiceHead  `xml:"invoiceHead"`
 	InvoiceLines *InvoiceLines `xml:"invoiceLines,omitempty"`
 	//ProductFeeSummary ProductFeeSummary `xml:"productFeeSummary,omitempty"`
@@ -29,16 +29,16 @@ func NewInvoiceMain(inv *bill.Invoice) (*InvoiceMain, error) {
 		return nil, err
 	}
 
-	//invoiceSummary, err := NewInvoiceSummary(inv)
+	invoiceSummary, err := NewInvoiceSummary(inv)
 	if err != nil {
 		return nil, err
 	}
 
 	return &InvoiceMain{
 		Invoice: &Invoice{
-			InvoiceHead:  invoiceHead,
-			InvoiceLines: invoiceLines,
-			//InvoiceSummary: invoiceSummary,
+			InvoiceHead:    invoiceHead,
+			InvoiceLines:   invoiceLines,
+			InvoiceSummary: invoiceSummary,
 		},
 	}, nil
 }

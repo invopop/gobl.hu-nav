@@ -1,7 +1,6 @@
 package doc
 
 import (
-	"github.com/invopop/gobl/l10n"
 	"github.com/invopop/gobl/org"
 )
 
@@ -17,10 +16,6 @@ type SupplierInfo struct {
 }
 
 func NewSupplierInfo(supplier *org.Party) (*SupplierInfo, error) {
-	taxId := supplier.TaxID
-	if taxId.Country != l10n.HU.Tax() {
-		return nil, ErrNotHungarian
-	}
 	taxNumber, groupNumber, err := NewTaxNumber(supplier)
 	if err != nil {
 		return nil, err

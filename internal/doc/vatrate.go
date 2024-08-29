@@ -2,16 +2,14 @@ package doc
 
 import (
 	"github.com/invopop/gobl/bill"
-	//"github.com/invopop/gobl/regimes/hu"
+	"github.com/invopop/gobl/regimes/hu"
 	"github.com/invopop/gobl/tax"
 )
 
-//"github.com/invopop/gobl/regimes/hu"
-
 // Vat Rate may contain exactly one of the 8 possible fields
 type VatRate struct {
-	VatPercentage            float64            `xml:"vatPercentage,omitempty"`
-	VatContent               float64            `xml:"vatContent,omitempty"` //VatContent is only for simplified invoices
+	VatPercentage            string             `xml:"vatPercentage,omitempty"`
+	VatContent               string             `xml:"vatContent,omitempty"` //VatContent is only for simplified invoices
 	VatExemption             *DetailedReason    `xml:"vatExemption,omitempty"`
 	VatOutOfScope            *DetailedReason    `xml:"vatOutOfScope,omitempty"`
 	VatDomesticReverseCharge bool               `xml:"vatDomesticReverseCharge,omitempty"`
@@ -53,12 +51,12 @@ func NewVatRate(obj any, info *taxInfo) (*VatRate, error) {
 func newVatRateTotal(rate *tax.RateTotal, info *taxInfo) (*VatRate, error) {
 	// First if it is not exent or simplified invoice we can return the percentage
 	if rate.Percent != nil {
-		return &VatRate{VatPercentage: rate.Percent.Amount().Rescale(4).Float64()}, nil
+		return &VatRate{VatPercentage: rate.Percent.Base().String()}, nil
 	}
 
 	// If it is a simplified invoice we can return the content
 	if info.simplifiedInvoice {
-		return &VatRate{VatContent: rate.Amount.Rescale(4).Float64()}, nil
+		return &VatRate{VatContent: rate.Amount.Rescale(2).String()}, nil
 	}
 
 	// Check if in the rate extensions there is extkeyexemptioncode or extkeyvatoutofscopecode
@@ -106,7 +104,7 @@ func newVatRateTotal(rate *tax.RateTotal, info *taxInfo) (*VatRate, error) {
 func newVatRateCombo(c *tax.Combo, info *taxInfo) (*VatRate, error) {
 	// First if it is not exent or simplified invoice we can return the percentage
 	if c.Percent != nil {
-		return &VatRate{VatPercentage: c.Percent.Amount().Rescale(4).Float64()}, nil
+		return &VatRate{VatPercentage: c.Percent.Base().String()}, nil
 	}
 
 	// Check if in the rate extensions there is extkeyexemptioncode or extkeyvatoutofscopecode
@@ -148,7 +146,6 @@ func newVatRateCombo(c *tax.Combo, info *taxInfo) (*VatRate, error) {
 	return nil, ErrNoVatRateField
 }
 
-// Until PR approved in regimes this wont work
 func newTaxInfo(inv *bill.Invoice) *taxInfo {
 	info := &taxInfo{}
 	if inv.Tax != nil {
@@ -156,15 +153,15 @@ func newTaxInfo(inv *bill.Invoice) *taxInfo {
 			switch scheme {
 			case tax.TagSimplified:
 				info.simplifiedInvoice = true
-			case "domestic-reverse-charge": //case hu.TagDomesticReverseCharge:
+			case hu.TagDomesticReverseCharge:
 				info.domesticReverseCharge = true
-			case "travel-agency": //hu.TagTravelAgency:
+			case hu.TagTravelAgency:
 				info.travelAgency = true
-			case "second-hand": //hu.TagSecondHand:
+			case hu.TagSecondHand:
 				info.secondHand = true
-			case "art": //hu.TagArt:
+			case hu.TagArt:
 				info.art = true
-			case "antiques": //hu.TagAntique:
+			case hu.TagAntiques:
 				info.antique = true
 			}
 		}

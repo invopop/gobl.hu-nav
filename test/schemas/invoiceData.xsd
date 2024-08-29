@@ -6,8 +6,10 @@
 # Version: v3.0 2020/11/23
 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.nav.gov.hu/OSA/3.0/data" xmlns:common="http://schemas.nav.gov.hu/NTCA/1.0/common" xmlns:base="http://schemas.nav.gov.hu/OSA/3.0/base" targetNamespace="http://schemas.nav.gov.hu/OSA/3.0/data" elementFormDefault="qualified" attributeFormDefault="unqualified">
-	<xs:import namespace="http://schemas.nav.gov.hu/NTCA/1.0/common"/>
-	<xs:import namespace="http://schemas.nav.gov.hu/OSA/3.0/base"/>
+	<!--Here we have to add the schemaLocation for the schema Validation
+	Problem: We have to change every time the schema location, depending on the directory of the project-->
+	<xs:import namespace="http://schemas.nav.gov.hu/NTCA/1.0/common" schemaLocation="../../test/schemas/common.xsd"/>
+	<xs:import namespace="http://schemas.nav.gov.hu/OSA/3.0/base" schemaLocation="../../test/schemas/invoiceBase.xsd"/>
 	<xs:simpleType name="CustomerVatStatusType">
 			<xs:annotation>
 				<xs:documentation xml:lang="hu">Vevő ÁFA szerinti státusz típusa</xs:documentation>
