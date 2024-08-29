@@ -8,7 +8,6 @@ import (
 
 	"github.com/invopop/gobl"
 	nav "github.com/invopop/gobl.hu-nav"
-	"github.com/invopop/gobl/bill"
 	"github.com/spf13/cobra"
 )
 
@@ -53,17 +52,12 @@ func (c *convertOpts) runE(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("unmarshaling gobl envelope: %w", err)
 	}
 
-	inv, ok := env.Extract().(*bill.Invoice)
-	if !ok {
-		return fmt.Errorf("invalid type %T", env.Document)
-	}
-
-	doc, err := nav.NewDocument(inv)
+	doc, err := nav.NewDocument(env)
 	if err != nil {
 		panic(err)
 	}
 
-	data, err := doc.BytesIndent()
+	data, err := nav.BytesIndent(doc)
 	if err != nil {
 		return fmt.Errorf("generating nav xml: %w", err)
 	}

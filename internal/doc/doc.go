@@ -1,17 +1,13 @@
 package doc
 
 import (
-	"bytes"
 	"encoding/xml"
 	"errors"
 	"fmt"
 
+	"github.com/invopop/gobl"
 	"github.com/invopop/gobl/bill"
 )
-
-/* <?xml version="1.0" encoding="UTF-8"?>
-<InvoiceData xmlns="http://schemas.nav.gov.hu/OSA/3.0/data" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://schemas.nav.gov.hu/OSA/3.0/data invoiceData.xsd"
-xmlns:common="http://schemas.nav.gov.hu/NTCA/1.0/common" xmlns:base="http://schemas.nav.gov.hu/OSA/3.0/base" >*/
 
 const (
 	XMNLSDATA     = "http://schemas.nav.gov.hu/OSA/3.0/data"
@@ -42,6 +38,7 @@ func newValidationError(text string) error {
 	return &ValidationError{errors.New(text)}
 }
 
+// Document is the root element of the XML document.
 type Document struct {
 	XMLName               xml.Name     `xml:"InvoiceData"`
 	XMLNS                 string       `xml:"xmlns,attr"`
@@ -51,12 +48,16 @@ type Document struct {
 	XMLNSBase             string       `xml:"xmlns:base,attr"`
 	InvoiceNumber         string       `xml:"invoiceNumber"`
 	InvoiceIssueDate      string       `xml:"invoiceIssueDate"`
-	CompletenessIndicator bool         `xml:"completenessIndicator"` // Indicates whether the data report is the invoice itself
+	CompletenessIndicator bool         `xml:"completenessIndicator"` // Indicates whether the data exchange is identical with the invoice (the invoice does not contain any more data)
 	InvoiceMain           *InvoiceMain `xml:"invoiceMain"`
 }
 
-// Convert it to XML before returning
-func NewDocument(inv *bill.Invoice) (*Document, error) {
+// NewDocument creates a new Document from an envelope.
+func NewDocument(env *gobl.Envelope) (*Document, error) {
+	inv, ok := env.Extract().(*bill.Invoice)
+	if !ok {
+		return nil, fmt.Errorf("invalid type %T", env.Document)
+	}
 	d := new(Document)
 	d.XMLNS = XMNLSDATA
 	d.XMLNSXsi = XMNLXSI
@@ -66,39 +67,10 @@ func NewDocument(inv *bill.Invoice) (*Document, error) {
 	d.InvoiceNumber = inv.Code
 	d.InvoiceIssueDate = inv.IssueDate.String()
 	d.CompletenessIndicator = false
-	main, err := NewInvoiceMain(inv)
+	main, err := newInvoiceMain(inv)
 	if err != nil {
 		return nil, err
 	}
 	d.InvoiceMain = main
 	return d, nil
-}
-
-// BytesIndent returns the indented XML document bytes
-func (doc *Document) BytesIndent() ([]byte, error) {
-	return toBytesIndent(doc)
-}
-
-func toBytesIndent(doc any) ([]byte, error) {
-	buf, err := buffer(doc, xml.Header, true)
-	if err != nil {
-		return nil, err
-	}
-
-	return buf.Bytes(), nil
-}
-
-func buffer(doc any, base string, indent bool) (*bytes.Buffer, error) {
-	buf := bytes.NewBufferString(base)
-
-	enc := xml.NewEncoder(buf)
-	if indent {
-		enc.Indent("", "  ")
-	}
-
-	if err := enc.Encode(doc); err != nil {
-		return nil, fmt.Errorf("encoding document: %w", err)
-	}
-
-	return buf, nil
 }

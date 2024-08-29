@@ -11,18 +11,18 @@ type InvoiceHead struct {
 	InvoiceDetail *InvoiceDetail `xml:"invoiceDetail"`
 }
 
-func NewInvoiceHead(inv *bill.Invoice) (*InvoiceHead, error) {
-	supplierInfo, err := NewSupplierInfo(inv.Supplier)
+func newInvoiceHead(inv *bill.Invoice) (*InvoiceHead, error) {
+	supplierInfo, err := newSupplierInfo(inv.Supplier)
 	if err != nil {
 		return nil, err
 	}
 
-	customerInfo, err := NewCustomerInfo(inv.Customer)
+	customerInfo, err := newCustomerInfo(inv.Customer)
 	if err != nil {
 		return nil, err
 	}
 
-	detail, err := NewInvoiceDetail(inv)
+	detail, err := newInvoiceDetail(inv)
 	if err != nil {
 		return nil, err
 	}

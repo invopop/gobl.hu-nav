@@ -99,7 +99,7 @@ func TestNewVatRate(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			vatRate, err := NewVatRate(tt.input, tt.info)
+			vatRate, err := newVatRate(tt.input, tt.info)
 			if tt.expectErr {
 				assert.Error(t, err)
 			} else {

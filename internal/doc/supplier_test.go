@@ -30,7 +30,7 @@ func TestNewSupplierInfo(t *testing.T) {
 	taxNumber := &TaxNumber{TaxPayerID: "98109858"}
 	groupNumber := (*TaxNumber)(nil)
 
-	supplierInfo, err := NewSupplierInfo(supplier)
+	supplierInfo, err := newSupplierInfo(supplier)
 	require.NoError(t, err)
 	assert.NotNil(t, supplierInfo)
 	assert.Equal(t, taxNumber, supplierInfo.SupplierTaxNumber)
@@ -61,7 +61,7 @@ func TestNewSupplierInfo(t *testing.T) {
 	taxNumber = &TaxNumber{TaxPayerID: "88212131", VatCode: "5", CountyCode: "03"}
 	groupNumber = &TaxNumber{TaxPayerID: "21114445", VatCode: "4", CountyCode: "23"}
 
-	supplierInfo, err = NewSupplierInfo(supplier)
+	supplierInfo, err = newSupplierInfo(supplier)
 
 	require.NoError(t, err)
 	assert.NotNil(t, supplierInfo)

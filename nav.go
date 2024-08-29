@@ -1,9 +1,13 @@
 package nav
 
 import (
+	"bytes"
+	"encoding/xml"
+	"fmt"
+
+	"github.com/invopop/gobl"
 	"github.com/invopop/gobl.hu-nav/internal/doc"
 	"github.com/invopop/gobl.hu-nav/internal/gateways"
-	"github.com/invopop/gobl/bill"
 	"github.com/invopop/gobl/tax"
 )
 
@@ -45,7 +49,7 @@ func (n *Nav) FetchToken() error {
 	return n.gw.GetToken()
 }
 
-func (n *Nav) ReportInvoice(invoice string) (string, error) {
+func (n *Nav) ReportInvoice(invoice []byte) (string, error) {
 	return n.gw.ReportInvoice(invoice)
 }
 
@@ -63,6 +67,31 @@ func NewUser(login string, password string, signKey string, exchangeKey string, 
 	return gateways.NewUser(login, password, signKey, exchangeKey, taxNumber)
 }
 
-func NewDocument(inv *bill.Invoice) (*doc.Document, error) {
-	return doc.NewDocument(inv)
+func NewDocument(env *gobl.Envelope) (*doc.Document, error) {
+	return doc.NewDocument(env)
+}
+
+// BytesIndent returns the indented XML document bytes
+func BytesIndent(doc any) ([]byte, error) {
+	buf, err := buffer(doc, xml.Header, true)
+	if err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
+}
+
+func buffer(doc any, base string, indent bool) (*bytes.Buffer, error) {
+	buf := bytes.NewBufferString(base)
+
+	enc := xml.NewEncoder(buf)
+	if indent {
+		enc.Indent("", "  ")
+	}
+
+	if err := enc.Encode(doc); err != nil {
+		return nil, fmt.Errorf("encoding document: %w", err)
+	}
+
+	return buf, nil
 }

@@ -3,6 +3,7 @@ package doc
 import (
 	"github.com/invopop/gobl/bill"
 	"github.com/invopop/gobl/currency"
+	"github.com/invopop/gobl/num"
 	"github.com/invopop/gobl/tax"
 )
 
@@ -15,8 +16,8 @@ type InvoiceDetail struct {
 	//InvoiceAccountingDeliveryDate string `xml:"invoiceAccountingDeliveryDate,omitempty"`
 	//PeriodicalSettlement          bool   `xml:"periodicalSettlement,omitempty"`
 	//SmallBusinessIndicator        bool   `xml:"smallBusinessIndicator,omitempty"`
-	CurrencyCode string  `xml:"currencyCode"`
-	ExchangeRate float64 `xml:"exchangeRate"`
+	CurrencyCode string `xml:"currencyCode"`
+	ExchangeRate string `xml:"exchangeRate"`
 	//UtilitySettlementIndicator bool   `xml:"utilitySettlementIndicator,omitempty"`
 	//SelfBillingIndicator       bool   `xml:"selfBillingIndicator,omitempty"`
 	PaymentMethod string `xml:"paymentMethod,omitempty"`
@@ -26,8 +27,8 @@ type InvoiceDetail struct {
 	//Some more optional data
 }
 
-// NewInvoiceDetail creates a new InvoiceDetail from an invoice
-func NewInvoiceDetail(inv *bill.Invoice) (*InvoiceDetail, error) {
+// newInvoiceDetail creates a new InvoiceDetail from an invoice
+func newInvoiceDetail(inv *bill.Invoice) (*InvoiceDetail, error) {
 	category := "NORMAL"
 	if inv.Tax.ContainsTag(tax.TagSimplified) {
 		category = "SIMPLIFIED"
@@ -66,7 +67,7 @@ func NewInvoiceDetail(inv *bill.Invoice) (*InvoiceDetail, error) {
 				paymentMethod = "TRANSFER"
 			case "card":
 				paymentMethod = "CARD"
-			// There is one case that is VOUCHER
+			// There is one case that is VOUCHER, but I didn't find anything in GOBL similar
 			default:
 				paymentMethod = "OTHER"
 			}
@@ -84,23 +85,23 @@ func NewInvoiceDetail(inv *bill.Invoice) (*InvoiceDetail, error) {
 		InvoiceDeliveryPeriodStart: periodStart,
 		InvoiceDeliveryPeriodEnd:   periodEnd,
 		CurrencyCode:               inv.Currency.String(),
-		ExchangeRate:               rate,
+		ExchangeRate:               rate.String(),
 		PaymentMethod:              paymentMethod,
 		PaymentDate:                dueDate,
 		InvoiceAppearance:          "EDI",
 	}, nil
 }
 
-func getInvoiceRate(inv *bill.Invoice) (float64, error) {
+func getInvoiceRate(inv *bill.Invoice) (num.Amount, error) {
 	if inv.Currency == currency.HUF {
-		return 1.0, nil
+		return num.MakeAmount(1, 0), nil
 	}
 
 	for _, ex := range inv.ExchangeRates {
 		if ex.To == currency.HUF {
-			return ex.Amount.Rescale(6).Float64(), nil
+			return ex.Amount.Rescale(6), nil
 		}
 	}
 
-	return -1.0, ErrNoExchangeRate
+	return num.AmountZero, ErrNoExchangeRate
 }

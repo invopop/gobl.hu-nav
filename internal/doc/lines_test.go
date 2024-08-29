@@ -45,7 +45,7 @@ func TestNewInvoiceLines(t *testing.T) {
 	}
 
 	// Execute the function under test
-	invoiceLines, err := NewInvoiceLines(invoice)
+	invoiceLines, err := newInvoiceLines(invoice)
 
 	// Assertions
 	assert.NoError(t, err)
@@ -99,10 +99,10 @@ func TestNewLine_SimplifiedInvoice(t *testing.T) {
 	}
 
 	info := &taxInfo{simplifiedInvoice: true}
-	rate := 1.0
+	rate := num.MakeAmount(1, 0)
 
 	// Execute the function under test
-	line, err := NewLine(invoice.Lines[0], info, rate)
+	line, err := newLine(invoice.Lines[0], info, rate)
 
 	// Assertions
 	assert.NoError(t, err)

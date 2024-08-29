@@ -1,27 +1,139 @@
 # gobl.hu-nav
-Convert GOBL into Hungarian NAV XML documents
+Go library to convert [GOBL](https://github.com/invopop/gobl) invoices into TicketBAI declarations and send them to the Hungarian web services.
 
-The invoice data content of the data report must be embedded, encoded in BASE64 format, in the ManageInvoiceRequest/invoiceoperations/invoiceOperation/InvoiceData element.
+Copyright [Invopop Ltd.](https://invopop.com) 2023. Released publicly under the [Apache License v2.0](LICENSE). For commercial licenses please contact the [dev team at invopop](mailto:dev@invopop.com). For contributions to this library to be accepted, we will require you to accept transferring your copyright to Invopop Ltd.
+
+## Usage
+
+### Go package
+
+#### Conversion
+Usage of the XInvoice conversion library is quite straight forward. You must first have a GOBL Envelope including an invoice ready to convert.
+
+```go
+package main
+
+import (
+    "os"
+
+    "github.com/invopop/gobl"
+    nav "github.com/invopop/gobl.hu-nav"
+)
+
+func main() {
+    data, _ := os.ReadFile("./test/data/invoice-test.json")
+
+    env := new(gobl.Envelope)
+    if err := json.Unmarshal(data, env); err != nil {
+        panic(err)
+    }
+
+    // Prepare the CFDI document
+    doc, err := nav.NewDocument(env)
+    if err != nil {
+        panic(err)
+    }
+
+    // Create the XML output
+    out, err := nav.BytesIndent(doc)
+    if err != nil {
+        panic(err)
+    }
+
+    // TODO: do something with the output
+}
+```
+
+#### Invoice Reporting
+
+Once the invoice is generated, it can be reported to the Hungarian authoritites. You must first have a technical user created in the [Online Szamla](https://onlineszamla.nav.gov.hu/home).
+
+```go
+package main
+
+import (
+    "os"
+
+    "github.com/invopop/gobl"
+    nav "github.com/invopop/gobl.hu-nav"
+)
+
+func main() {
+
+    // Software is the information regarding the system used to report the invoices
+    software := NewSoftware(
+		tax.Identity{Country: l10n.ES.Tax(), Code: cbc.Code("B12345678")},
+		"Invopop",
+		"ONLINE_SERVICE",
+		"1.0.0",
+		"TestDev",
+		"test@dev.com",
+	)
+
+    // User is all the data obtained from the technical user that it is needed to report the invoices
+    user := NewUser(
+        "username",
+        "password",
+        "signature_key",
+        "exchange_key",
+        "taxID"
+    )
+
+    // Create a new client with the user and software data and choose if you want to issue the invoices in the testing or production environment
+    navClient := NewNav(user, software, InTesting())
+
+    //We load the invoice
+    inv, err := os.ReadFile("test/data/out/output.xml")
+	if err != nil {
+		panic(err)
+	}
+
+    // Report the invoice
+    transactionId, err := navClient.ReportInvoice(invoice)
+    if err != nil {
+        panic(err)
+    }
+
+    // Once the invoice is reported, you can check the status
+    // If you check the status too early you would get a status of PROCESSING, which means that you should try again later to query the status
+    resultsList, err := navClient.GetTransactionStatus(transactionId)
+
+    //The output contains the status and a list of technical and business validation messages. To visualize the output, you can create a XML output:
+    out, err := nav.BytesIndent(resultsList)
+    if err != nil {
+        panic(err)
+    }
+
+    // TODO: do something with the output
+}
+```
+
+### Command Line
+#### Conversion
+
+The GOBL NAV package tool also includes a command line helper. You can install manually in your Go environment with:
+
+```bash
+go install ./cmd/gobl.nav
+```
+
+Usage is very straightforward:
+
+```bash
+gobl.nav convert ./test/data/invoice.json
+```
+
 
 ## Limitations/Things to do
 
 ### Doc Conversion
-- We don't support batch invoicing (It is used only for batch modifications)
-- We don't support modification of invoices
-- We don't support fiscal representatives
-- We don't support aggregate invoices
-- In the VAT rate we are missing the vat amount mismatch field (used when VAT has been charged under section 11 or 14)
-- We don't support refund product charges (Field Product Fee Summary in the Invoice)
+- Batch invoicing not supported
+- Modification of invoices not supported
+- Support fiscal representatives
+- Aggregate invoices not supported
+- Product refund charges not supported (Field Product Fee Summary in the Invoice)
+- Nav supports 100 invoice creation/modification in the same request. For the moment, we only support 1 invoice at each request.
 
-### API Connection
-- Nav supports 100 invoice creation/modification in the same request. For the moment, we only support 1 invoice at each request. If this is changed, it should also be changed in status.go, as now status only answers with the errors/warning of the first invoice.
+## Tags, Tax and Extensions
 
-## Invoice issuing order
-
-1. Generate the doc with the format required by the NAV.
-2. Obtain an exchange token with 5 mins validity.
-3. Issue the invoice (An Ok message when issuing the invoice doesn't mean that it is correctly issued)
-4. Check your transaction status (This would give us information about the status of the invoice issuing)
-
-If you do step number 4 just after 3, you would get a status of processing, we should retry the operation until we get a status of DONE or ABORT.
 

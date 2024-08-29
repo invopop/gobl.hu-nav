@@ -6,6 +6,7 @@ import (
 	"github.com/invopop/gobl/org"
 )
 
+// Address is the format of address that includes either a simple or a detailed address
 type Address struct {
 	SimpleAddress   *SimpleAddress   `xml:"base:simpleAddress,omitempty"`
 	DetailedAddress *DetailedAddress `xml:"base:detailedAddress,omitempty"`
@@ -27,9 +28,6 @@ type DetailedAddress struct {
 	LotNumber           string `xml:"base:lotNumber,omitempty"`
 }
 
-// GOBL does not support dividing the address into public place category and street name
-// For the moment we can use SimpleAddress
-
 // SimpleAddressType represents a simple address
 type SimpleAddress struct {
 	CountryCode             string `xml:"countryCode"`
@@ -39,21 +37,23 @@ type SimpleAddress struct {
 	AdditionalAddressDetail string `xml:"base:additionalAddressDetail"`
 }
 
-func NewAddress(address *org.Address) *Address {
-	return &Address{
-		DetailedAddress: NewDetailedAddress(address),
+func newAddress(address *org.Address) *Address {
+	if address.StreetType != "" {
+		return &Address{
+			DetailedAddress: newDetailedAddress(address),
+		}
 	}
-	/*return &Address{
+	return &Address{
 		SimpleAddress: &SimpleAddress{
 			CountryCode:             address.Country.String(),
 			PostalCode:              address.Code,
 			City:                    address.Locality,
 			AdditionalAddressDetail: formatAddress(address),
 		},
-	}*/
+	}
 }
 
-func NewDetailedAddress(address *org.Address) *DetailedAddress {
+func newDetailedAddress(address *org.Address) *DetailedAddress {
 	return &DetailedAddress{
 		CountryCode:         address.Country.String(),
 		Region:              address.Region,

@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/invopop/gobl"
-	"github.com/invopop/gobl/bill"
 	"github.com/lestrrat-go/libxml2"
 	"github.com/lestrrat-go/libxml2/xsd"
 	"github.com/stretchr/testify/assert"
@@ -25,12 +24,8 @@ func TestNewDocument(t *testing.T) {
 	err = json.Unmarshal(data, env)
 	require.NoError(t, err, "Failed to unmarshal test invoice JSON")
 
-	// Extract the invoice from the envelope
-	inv, ok := env.Extract().(*bill.Invoice)
-	require.True(t, ok, "Failed to extract invoice from envelope")
-
 	// Call the NewDocument function
-	doc, err := NewDocument(inv)
+	doc, err := NewDocument(env)
 	require.NoError(t, err, "Failed to create new document")
 
 	xmlData, err := xml.MarshalIndent(doc, "", "  ")
@@ -82,8 +77,6 @@ func TestNewDocument(t *testing.T) {
 	assert.Equal(t, XSIDataSchema, doc.XSISchema, "Unexpected XSISchema value")
 	assert.Equal(t, XMNLSCOMMON, doc.XMLNSCommon, "Unexpected XMLNSCommon value")
 	assert.Equal(t, XMNLBASE, doc.XMLNSBase, "Unexpected XMLNSBase value")
-	assert.Equal(t, inv.Code, doc.InvoiceNumber, "Unexpected InvoiceNumber value")
-	assert.Equal(t, inv.IssueDate.String(), doc.InvoiceIssueDate, "Unexpected InvoiceIssueDate value")
 	assert.False(t, doc.CompletenessIndicator, "Unexpected CompletenessIndicator value")
 
 	// Assert that InvoiceMain is not nil

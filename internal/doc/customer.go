@@ -6,20 +6,25 @@ import (
 	"github.com/invopop/gobl/tax"
 )
 
+// CustomerInfo contains the customer data.
 type CustomerInfo struct {
-	CustomerVatStatus string   `xml:"customerVatStatus"`
+	CustomerVatStatus string   `xml:"customerVatStatus"` // PRIVATE_PERSON, DOMESTIC, OTHER
 	CustomerVatData   *VatData `xml:"customerVatData,omitempty"`
 	CustomerName      string   `xml:"customerName,omitempty"`
 	CustomerAddress   *Address `xml:"customerAddress,omitempty"`
 	// CustomerBankAccount string   `xml:"customerBankAccountNumber,omitempty"`
 }
 
+// VatData contains the VAT subjectivity data of the customer.
 type VatData struct {
 	CustomerTaxNumber  *CustomerTaxNumber `xml:"customerTaxNumber,omitempty"`
 	CommunityVATNumber string             `xml:"communityVATNumber,omitempty"`
 	ThirdStateTaxId    string             `xml:"thirdStateTaxId,omitempty"`
 }
 
+// CustomerTaxNumber contains the domestic tax number or
+// the group identification number, under which the purchase of goods
+// or services is done
 type CustomerTaxNumber struct {
 	TaxPayerID           string     `xml:"base:taxpayerId"`
 	VatCode              string     `xml:"base:vatCode,omitempty"`
@@ -27,14 +32,14 @@ type CustomerTaxNumber struct {
 	GroupMemberTaxNumber *TaxNumber `xml:"groupMemberTaxNumber,omitempty"`
 }
 
-func NewCustomerInfo(customer *org.Party) (*CustomerInfo, error) {
+func newCustomerInfo(customer *org.Party) (*CustomerInfo, error) {
 
 	taxID := customer.TaxID
 	if taxID == nil {
 		return &CustomerInfo{
 			CustomerVatStatus: "OTHER",
 			CustomerName:      customer.Name,
-			CustomerAddress:   NewAddress(customer.Addresses[0]),
+			CustomerAddress:   newAddress(customer.Addresses[0]),
 		}, nil
 	}
 	status := "OTHER"
@@ -44,7 +49,7 @@ func NewCustomerInfo(customer *org.Party) (*CustomerInfo, error) {
 			return &CustomerInfo{
 				CustomerVatStatus: "PRIVATE_PERSON",
 				CustomerName:      customer.Name,
-				CustomerAddress:   NewAddress(customer.Addresses[0]),
+				CustomerAddress:   newAddress(customer.Addresses[0]),
 			}, nil
 		}
 		status = "DOMESTIC"
@@ -60,7 +65,7 @@ func NewCustomerInfo(customer *org.Party) (*CustomerInfo, error) {
 		CustomerVatStatus: status,
 		CustomerVatData:   vatData,
 		CustomerName:      customer.Name,
-		CustomerAddress:   NewAddress(customer.Addresses[0]),
+		CustomerAddress:   newAddress(customer.Addresses[0]),
 	}, nil
 }
 
@@ -83,7 +88,7 @@ func newOtherVatData(taxID *tax.Identity) *VatData {
 }
 
 func newDomesticVatData(customer *org.Party) (*VatData, error) {
-	taxNumber, groupNumber, err := NewTaxNumber(customer)
+	taxNumber, groupNumber, err := newTaxNumber(customer)
 	if err != nil {
 		return nil, err
 	}

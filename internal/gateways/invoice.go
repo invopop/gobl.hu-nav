@@ -1,6 +1,7 @@
 package gateways
 
 import (
+	"encoding/base64"
 	"encoding/xml"
 	"fmt"
 	"time"
@@ -46,8 +47,11 @@ type ManageInvoiceResponse struct {
 	TransactionId string    `xml:"transactionId"`
 }
 
-func (g *Client) ReportInvoice(invoice string) (string, error) {
-	requestData := g.newManageInvoiceRequest(invoice)
+func (g *Client) ReportInvoice(invoice []byte) (string, error) {
+	// We first fetch the exchange token
+	g.GetToken()
+	encodedInvoice := base64.StdEncoding.EncodeToString(invoice)
+	requestData := g.newManageInvoiceRequest(encodedInvoice)
 	return g.postManageInvoiceRequest(requestData)
 }
 

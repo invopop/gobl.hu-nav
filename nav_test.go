@@ -1,7 +1,6 @@
 package nav
 
 import (
-	"encoding/base64"
 	"encoding/xml"
 	"fmt"
 	"log"
@@ -23,7 +22,7 @@ func TestReportInvoice(t *testing.T) {
 		"ONLINE_SERVICE",
 		"1.0.0",
 		"TestDev",
-		"pablo.menendez@invopop.com",
+		"test@dev.com",
 	)
 
 	err := godotenv.Load(".env")
@@ -41,15 +40,12 @@ func TestReportInvoice(t *testing.T) {
 
 	navClient := NewNav(user, software, InTesting())
 
-	xmlContent, err := os.ReadFile("test/data/out/output.xml")
+	invoice, err := os.ReadFile("test/data/out/output.xml")
 	if err != nil {
 		t.Fatalf("Failed to read sample invoice file: %v", err)
 	}
-	encodedInvoice := base64.StdEncoding.EncodeToString(xmlContent)
 
-	navClient.FetchToken()
-
-	transactionId, err := navClient.ReportInvoice(encodedInvoice)
+	transactionId, err := navClient.ReportInvoice(invoice)
 
 	fmt.Println("Transaction ID: ", transactionId)
 

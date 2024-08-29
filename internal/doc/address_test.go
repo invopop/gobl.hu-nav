@@ -64,7 +64,7 @@ func TestNewAddress(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := NewAddress(tt.input)
+			result := newAddress(tt.input)
 			assert.Equal(t, tt.expectedOutput, result)
 		})
 	}

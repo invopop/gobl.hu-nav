@@ -8,11 +8,13 @@ import (
 	"github.com/invopop/gobl/tax"
 )
 
+// InvoiceLines contains the product/service data appearing on the invoice.
 type InvoiceLines struct {
 	MergedItemIndicator bool   `xml:"mergedItemIndicator"` // Indicates if the data report contains aggregated item data
 	Lines               []Line `xml:"line"`
 }
 
+// Line contains the data of a single product or service on the invoice.
 type Line struct {
 	LineNumber int `xml:"lineNumber"`
 	//LineModificationReference LineModificationReference `xml:"lineModificationReference,omitempty"`
@@ -44,10 +46,12 @@ type Line struct {
 	//AdditionalLineData        AdditionalData            `xml:"additionalLineData,omitempty"`       // Additional data
 }
 
+// ProductCodes contains the product codes of a product or service.
 type ProductCodes struct {
 	ProductCode []*ProductCode `xml:"productCode"`
 }
 
+// ProductCode contains the product code of a product or service.
 // One of code value or codeownvalue must be present
 type ProductCode struct {
 	ProductCodeCategory string `xml:"productCodeCategory"` // Product code value for non-own product codes
@@ -55,12 +59,14 @@ type ProductCode struct {
 	ProductCodeOwnValue string `xml:"productCodeOwnValue,omitempty"` // Own product code value
 }
 
+// LineDiscountData contains the data of a discount on a line.
 type LineDiscountData struct {
 	DiscountDescription string `xml:"discountDescription"`
 	DiscountValue       string `xml:"discountValue"`
 	DiscountRate        string `xml:"discountRate"`
 }
 
+// LineAmountsNormal contains the net, VAT and gross amounts of a line in a normal invoice.
 type LineAmountsNormal struct {
 	LineNetAmountData   *LineNetAmountData   `xml:"lineNetAmountData"`
 	LineVatRate         *VatRate             `xml:"lineVatRate"`
@@ -68,11 +74,13 @@ type LineAmountsNormal struct {
 	LineGrossAmountData *LineGrossAmountData `xml:"lineGrossAmountData,omitempty"`
 }
 
+// LineNetAmountData contains the net amount of a line.
 type LineNetAmountData struct {
 	LineNetAmount    string `xml:"lineNetAmount"`
 	LineNetAmountHUF string `xml:"lineNetAmountHUF"`
 }
 
+// VatRate contains the VAT rate and amount of a line.
 type LineVatData struct {
 	LineVatAmount    string `xml:"lineVatAmount"`
 	LineVatAmountHUF string `xml:"lineVatAmountHUF"`
@@ -84,6 +92,7 @@ type LineGrossAmountData struct {
 	LineGrossAmountHUF string `xml:"lineGrossAmountHUF"`
 }
 
+// LineAmountsSimplified contains the amounts of a line in a simplified invoice.
 type LineAmountsSimplified struct {
 	LineVatRate                  *VatRate `xml:"lineVatRate"`
 	LineGrossAmountSimplified    string   `xml:"lineGrossAmountSimplified"` //This amount is the net amount of the normal line
@@ -100,8 +109,7 @@ var validUnits = map[org.Unit]string{
 	org.UnitLitre: "LITRE", org.UnitKilometre: "KILOMETER", org.UnitCubicMetre: "CUBIC_METER",
 	org.UnitMetre: "METER", org.UnitCarton: "CARTON", org.UnitPackage: "PACK"}
 
-func NewInvoiceLines(inv *bill.Invoice) (*InvoiceLines, error) {
-
+func newInvoiceLines(inv *bill.Invoice) (*InvoiceLines, error) {
 	invoiceLines := &InvoiceLines{}
 	taxinfo := newTaxInfo(inv)
 	rate, err := getInvoiceRate(inv)
@@ -109,7 +117,7 @@ func NewInvoiceLines(inv *bill.Invoice) (*InvoiceLines, error) {
 		return nil, err
 	}
 	for _, line := range inv.Lines {
-		invoiceLine, err := NewLine(line, taxinfo, rate)
+		invoiceLine, err := newLine(line, taxinfo, rate)
 		if err != nil {
 			return nil, err
 		}
@@ -120,7 +128,7 @@ func NewInvoiceLines(inv *bill.Invoice) (*InvoiceLines, error) {
 	return invoiceLines, nil
 }
 
-func NewLine(line *bill.Line, info *taxInfo, rate float64) (*Line, error) {
+func newLine(line *bill.Line, info *taxInfo, rate num.Amount) (*Line, error) {
 	lineNav := &Line{
 		LineNumber:              line.Index,
 		LineExpressionIndicator: false,
@@ -131,9 +139,10 @@ func NewLine(line *bill.Line, info *taxInfo, rate float64) (*Line, error) {
 	}
 
 	if line.Item.Identities != nil {
-		lineNav.ProductCodes = NewProductCodes(line.Item.Identities)
+		lineNav.ProductCodes = newProductCodes(line.Item.Identities)
 	}
 
+	// If a unit is included we check if it is a valid unit
 	if line.Item.Unit != "" {
 		for unit, value := range validUnits {
 			if line.Item.Unit == unit {
@@ -179,7 +188,7 @@ func NewLine(line *bill.Line, info *taxInfo, rate float64) (*Line, error) {
 				LineGrossAmountSimplifiedHUF: amountToHUF(line.Total, rate).String(),
 			}
 		} else {
-			vatRate, err := NewVatRate(vatCombo, info)
+			vatRate, err := newVatRate(vatCombo, info)
 			if err != nil {
 				return nil, err
 			}
@@ -195,19 +204,19 @@ func NewLine(line *bill.Line, info *taxInfo, rate float64) (*Line, error) {
 	return lineNav, nil
 }
 
-func NewProductCodes(identities []*org.Identity) *ProductCodes {
+func newProductCodes(identities []*org.Identity) *ProductCodes {
 	if len(identities) == 0 {
 		return nil
 	}
 	productCodes := &ProductCodes{}
 	for _, identity := range identities {
-		productCode := NewProductCode(identity)
+		productCode := newProductCode(identity)
 		productCodes.ProductCode = append(productCodes.ProductCode, productCode)
 	}
 	return productCodes
 }
 
-func NewProductCode(identity *org.Identity) *ProductCode {
+func newProductCode(identity *org.Identity) *ProductCode {
 	if identity.Type == "OWN" {
 		return &ProductCode{
 			ProductCodeCategory: "OWN",
@@ -228,7 +237,7 @@ func NewProductCode(identity *org.Identity) *ProductCode {
 	}
 }
 
-func amountToHUF(amount num.Amount, ex float64) num.Amount {
-	result := amount.Multiply(num.AmountFromFloat64(ex, 5))
+func amountToHUF(amount num.Amount, ex num.Amount) num.Amount {
+	result := amount.Multiply(ex)
 	return result.Rescale(2)
 }

@@ -6,7 +6,8 @@ import (
 	"github.com/invopop/gobl/tax"
 )
 
-// Vat Rate may contain exactly one of the 8 possible fields
+// VatRate contains the VAT rate information.
+// VatRate may contain exactly one of the 8 possible fields
 type VatRate struct {
 	VatPercentage            string             `xml:"vatPercentage,omitempty"`
 	VatContent               string             `xml:"vatContent,omitempty"` //VatContent is only for simplified invoices
@@ -18,11 +19,13 @@ type VatRate struct {
 	NoVatCharge              bool               `xml:"noVatCharge,omitempty"`
 }
 
+// DetailedReason contains the case and reason of a VAT exemption or out of scope
 type DetailedReason struct {
 	Case   string `xml:"case"`
 	Reason string `xml:"reason"`
 }
 
+// VatAmountMismatch contains the vat rate and case of a vat amount mismatch
 type VatAmountMismatch struct {
 	VatRate float64 `xml:"vatRate"`
 	Case    string  `xml:"case"`
@@ -37,7 +40,7 @@ type taxInfo struct {
 	antique               bool
 }
 
-func NewVatRate(obj any, info *taxInfo) (*VatRate, error) {
+func newVatRate(obj any, info *taxInfo) (*VatRate, error) {
 	switch obj := obj.(type) {
 	case *tax.RateTotal:
 		return newVatRateTotal(obj, info)
@@ -47,7 +50,6 @@ func NewVatRate(obj any, info *taxInfo) (*VatRate, error) {
 	return nil, nil
 }
 
-// NewVatRate creates a new VatRate from a taxid
 func newVatRateTotal(rate *tax.RateTotal, info *taxInfo) (*VatRate, error) {
 	// First if it is not exent or simplified invoice we can return the percentage
 	if rate.Percent != nil {
@@ -61,11 +63,11 @@ func newVatRateTotal(rate *tax.RateTotal, info *taxInfo) (*VatRate, error) {
 
 	// Check if in the rate extensions there is extkeyexemptioncode or extkeyvatoutofscopecode
 	for k, v := range rate.Ext {
-		if k == "hu-exemption-code" { //hu.ExtKeyExemptionCode {
+		if k == hu.ExtKeyExemptionCode {
 			return &VatRate{VatExemption: &DetailedReason{Case: v.String(), Reason: "Exempt"}}, nil
 		}
 
-		if k == "hu-vat-out-of-scope-code" { //hu.ExtKeyVatOutOfScopeCode {
+		if k == hu.ExtKeyVatOutOfScopeCode {
 			return &VatRate{VatOutOfScope: &DetailedReason{Case: v.String(), Reason: "Out of Scope"}}, nil
 		}
 	}
@@ -90,7 +92,7 @@ func newVatRateTotal(rate *tax.RateTotal, info *taxInfo) (*VatRate, error) {
 		return &VatRate{MarginSchemeIndicator: "ANTIQUE"}, nil
 	}
 
-	// Missing vat amount mismatch
+	//TODO: Missing vat amount mismatch
 
 	// If percent is nil
 	if rate.Percent == nil {
@@ -109,11 +111,11 @@ func newVatRateCombo(c *tax.Combo, info *taxInfo) (*VatRate, error) {
 
 	// Check if in the rate extensions there is extkeyexemptioncode or extkeyvatoutofscopecode
 	for k, v := range c.Ext {
-		if k == "hu-exemption-code" { //hu.ExtKeyExemptionCode {
+		if k == hu.ExtKeyExemptionCode {
 			return &VatRate{VatExemption: &DetailedReason{Case: v.String(), Reason: "Exempt"}}, nil
 		}
 
-		if k == "hu-vat-out-of-scope-code" { //hu.ExtKeyVatOutOfScopeCode {
+		if k == hu.ExtKeyVatOutOfScopeCode {
 			return &VatRate{VatOutOfScope: &DetailedReason{Case: v.String(), Reason: "Out of Scope"}}, nil
 		}
 	}

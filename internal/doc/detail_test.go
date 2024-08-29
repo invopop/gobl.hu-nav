@@ -36,7 +36,7 @@ func TestNewInvoiceDetail_NormalInvoice(t *testing.T) {
 		},
 	}
 
-	detail, err := NewInvoiceDetail(invoice)
+	detail, err := newInvoiceDetail(invoice)
 	assert.NoError(t, err)
 	assert.Equal(t, "NORMAL", detail.InvoiceCategory)
 	assert.Equal(t, "2023-08-10", detail.InvoiceDeliveryDate)
@@ -65,7 +65,7 @@ func TestNewInvoiceDetail_SimplifiedInvoice(t *testing.T) {
 		},
 	}
 
-	detail, err := NewInvoiceDetail(invoice)
+	detail, err := newInvoiceDetail(invoice)
 	assert.NoError(t, err)
 	assert.Equal(t, "SIMPLIFIED", detail.InvoiceCategory)
 }
@@ -83,7 +83,7 @@ func TestNewInvoiceDetail_NoExchangeRate(t *testing.T) {
 		IssueDate: *cal.NewDate(2023, 7, 15),
 	}
 
-	_, err := NewInvoiceDetail(invoice)
+	_, err := newInvoiceDetail(invoice)
 	assert.Error(t, err)
 	assert.Equal(t, ErrNoExchangeRate, err)
 }

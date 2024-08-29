@@ -38,8 +38,8 @@ type VatRateVatData struct {
 	VatRateVatAmountHUF string `xml:"vatRateVatAmountHUF"`
 }
 
-func newSummaryByVatRate(rate *tax.RateTotal, info *taxInfo, ex float64) (*SummaryByVatRate, error) {
-	vatRate, err := NewVatRate(rate, info)
+func newSummaryByVatRate(rate *tax.RateTotal, info *taxInfo, ex num.Amount) (*SummaryByVatRate, error) {
+	vatRate, err := newVatRate(rate, info)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +56,7 @@ func newSummaryByVatRate(rate *tax.RateTotal, info *taxInfo, ex float64) (*Summa
 	}, nil
 }
 
-func NewInvoiceSummary(inv *bill.Invoice) (*InvoiceSummary, error) {
+func newInvoiceSummary(inv *bill.Invoice) (*InvoiceSummary, error) {
 	vat := inv.Totals.Taxes.Category(tax.CategoryVAT)
 	totalVat := num.MakeAmount(0, 5)
 	summaryVat := []*SummaryByVatRate{}
