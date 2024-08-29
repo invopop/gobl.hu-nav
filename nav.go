@@ -1,7 +1,9 @@
 package nav
 
 import (
+	"github.com/invopop/gobl.hu-nav/internal/doc"
 	"github.com/invopop/gobl.hu-nav/internal/gateways"
+	"github.com/invopop/gobl/bill"
 	"github.com/invopop/gobl/tax"
 )
 
@@ -59,4 +61,8 @@ func NewSoftware(taxNumber tax.Identity, name string, operation string, version 
 // NewUser creates a new User
 func NewUser(login string, password string, signKey string, exchangeKey string, taxNumber string) *gateways.User {
 	return gateways.NewUser(login, password, signKey, exchangeKey, taxNumber)
+}
+
+func NewDocument(inv *bill.Invoice) (*doc.Document, error) {
+	return doc.NewDocument(inv)
 }

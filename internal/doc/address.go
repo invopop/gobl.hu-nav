@@ -64,7 +64,7 @@ func NewDetailedAddress(address *org.Address) *DetailedAddress {
 		Building:            address.Block,
 		Floor:               address.Floor,
 		Door:                address.Door,
-		PublicPlaceCategory: "utca", //address.StreetType, //Waiting for PR to be approved
+		PublicPlaceCategory: address.StreetType,
 	}
 }
 

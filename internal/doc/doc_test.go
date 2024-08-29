@@ -30,7 +30,8 @@ func TestNewDocument(t *testing.T) {
 	require.True(t, ok, "Failed to extract invoice from envelope")
 
 	// Call the NewDocument function
-	doc := NewDocument(inv)
+	doc, err := NewDocument(inv)
+	require.NoError(t, err, "Failed to create new document")
 
 	xmlData, err := xml.MarshalIndent(doc, "", "  ")
 	if err != nil {

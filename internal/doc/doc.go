@@ -1,8 +1,10 @@
 package doc
 
 import (
+	"bytes"
 	"encoding/xml"
 	"errors"
+	"fmt"
 
 	"github.com/invopop/gobl/bill"
 )
@@ -21,10 +23,8 @@ const (
 
 // Standard error responses.
 var (
-	ErrNotHungarian           = newValidationError("only hungarian invoices are supported")
-	ErrNoExchangeRate         = newValidationError("no exchange rate to HUF found")
-	ErrInvalidGroupMemberCode = newValidationError("invalid group member code")
-	ErrNoVatRateField         = newValidationError("no vat rate field found")
+	ErrNoExchangeRate = newValidationError("no exchange rate to HUF found")
+	ErrNoVatRateField = newValidationError("no vat rate field found")
 )
 
 // ValidationError is a simple wrapper around validation errors (that should not be retried) as opposed
@@ -56,7 +56,7 @@ type Document struct {
 }
 
 // Convert it to XML before returning
-func NewDocument(inv *bill.Invoice) *Document {
+func NewDocument(inv *bill.Invoice) (*Document, error) {
 	d := new(Document)
 	d.XMLNS = XMNLSDATA
 	d.XMLNSXsi = XMNLXSI
@@ -68,8 +68,37 @@ func NewDocument(inv *bill.Invoice) *Document {
 	d.CompletenessIndicator = false
 	main, err := NewInvoiceMain(inv)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	d.InvoiceMain = main
-	return d
+	return d, nil
+}
+
+// BytesIndent returns the indented XML document bytes
+func (doc *Document) BytesIndent() ([]byte, error) {
+	return toBytesIndent(doc)
+}
+
+func toBytesIndent(doc any) ([]byte, error) {
+	buf, err := buffer(doc, xml.Header, true)
+	if err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
+}
+
+func buffer(doc any, base string, indent bool) (*bytes.Buffer, error) {
+	buf := bytes.NewBufferString(base)
+
+	enc := xml.NewEncoder(buf)
+	if indent {
+		enc.Indent("", "  ")
+	}
+
+	if err := enc.Encode(doc); err != nil {
+		return nil, fmt.Errorf("encoding document: %w", err)
+	}
+
+	return buf, nil
 }
