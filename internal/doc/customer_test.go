@@ -146,11 +146,8 @@ func TestNewCustomerInfo(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			customerInfo, err := newCustomerInfo(tt.customer)
+			customerInfo := newCustomerInfo(tt.customer)
 
-			if err != tt.expectedErr {
-				t.Errorf("expected error %v, got %v", tt.expectedErr, err)
-			}
 			if customerInfo.CustomerVatStatus != tt.expectedStatus {
 				t.Errorf("expected status %v, got %v", tt.expectedStatus, customerInfo.CustomerVatStatus)
 			}

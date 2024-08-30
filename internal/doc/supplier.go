@@ -16,23 +16,21 @@ type SupplierInfo struct {
 	//ExciseLicenceNum string `xml:"exciseLicenceNum,omitempty"` // Number of supplier’s tax warehouse license or excise license (Act LXVIII of 2016)
 }
 
-func newSupplierInfo(supplier *org.Party) (*SupplierInfo, error) {
-	taxNumber, groupNumber, err := newTaxNumber(supplier)
-	if err != nil {
-		return nil, err
-	}
+func newSupplierInfo(supplier *org.Party) *SupplierInfo {
+	taxNumber, groupNumber := newTaxNumber(supplier)
+
 	if groupNumber != nil {
 		return &SupplierInfo{
 			SupplierTaxNumber:    taxNumber,
 			GroupMemberTaxNumber: groupNumber,
 			SupplierName:         supplier.Name,
 			SupplierAddress:      newAddress(supplier.Addresses[0]),
-		}, nil
+		}
 	}
 	return &SupplierInfo{
 		SupplierTaxNumber: taxNumber,
 		SupplierName:      supplier.Name,
 		SupplierAddress:   newAddress(supplier.Addresses[0]),
-	}, nil
+	}
 
 }

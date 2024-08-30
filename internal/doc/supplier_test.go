@@ -7,7 +7,6 @@ import (
 	"github.com/invopop/gobl/org"
 	"github.com/invopop/gobl/tax"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestNewSupplierInfo(t *testing.T) {
@@ -30,8 +29,7 @@ func TestNewSupplierInfo(t *testing.T) {
 	taxNumber := &TaxNumber{TaxPayerID: "98109858"}
 	groupNumber := (*TaxNumber)(nil)
 
-	supplierInfo, err := newSupplierInfo(supplier)
-	require.NoError(t, err)
+	supplierInfo := newSupplierInfo(supplier)
 	assert.NotNil(t, supplierInfo)
 	assert.Equal(t, taxNumber, supplierInfo.SupplierTaxNumber)
 	assert.Nil(t, supplierInfo.GroupMemberTaxNumber)
@@ -61,9 +59,8 @@ func TestNewSupplierInfo(t *testing.T) {
 	taxNumber = &TaxNumber{TaxPayerID: "88212131", VatCode: "5", CountyCode: "03"}
 	groupNumber = &TaxNumber{TaxPayerID: "21114445", VatCode: "4", CountyCode: "23"}
 
-	supplierInfo, err = newSupplierInfo(supplier)
+	supplierInfo = newSupplierInfo(supplier)
 
-	require.NoError(t, err)
 	assert.NotNil(t, supplierInfo)
 	assert.Equal(t, taxNumber, supplierInfo.SupplierTaxNumber)
 	assert.Equal(t, groupNumber, supplierInfo.GroupMemberTaxNumber)

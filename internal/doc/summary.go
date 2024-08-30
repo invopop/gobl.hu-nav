@@ -6,13 +6,15 @@ import (
 	"github.com/invopop/gobl/tax"
 )
 
-// Depends wether the invoice is simplified or not
+// InvoiceSummary is the summary of the invoice
+// It contains the totals of the invoice
 type InvoiceSummary struct {
 	SummaryNormal *SummaryNormal `xml:"summaryNormal,omitempty"`
 	//SummarySimplified *SummarySimplified `xml:"summarySimplified,omitempty"`
 	//SummaryGrossData  *SummaryGrossData  `xml:"summaryGrossData,omitempty"`
 }
 
+// SummaryNormal is the summary of a normal invoice
 type SummaryNormal struct {
 	SummaryByVatRate    []*SummaryByVatRate `xml:"summaryByVatRate"`
 	InvoiceNetAmount    string              `xml:"invoiceNetAmount"`
@@ -21,6 +23,7 @@ type SummaryNormal struct {
 	InvoiceVatAmountHUF string              `xml:"invoiceVatAmountHUF"`
 }
 
+// SummaryByVatRate is the summary of a vat rate
 type SummaryByVatRate struct {
 	VatRate        *VatRate        `xml:"vatRate"`
 	VatRateNetData *VatRateNetData `xml:"vatRateNetData"`
@@ -28,11 +31,13 @@ type SummaryByVatRate struct {
 	//VatRateGrossData VatRateGrossData `xml:"vatRateGrossData, omitempty"`
 }
 
+// VatRateNetData is the net data of a vat rate
 type VatRateNetData struct {
 	VatRateNetAmount    string `xml:"vatRateNetAmount"`
 	VatRateNetAmountHUF string `xml:"vatRateNetAmountHUF"`
 }
 
+// VatRateVatData is the vat data of a vat rate
 type VatRateVatData struct {
 	VatRateVatAmount    string `xml:"vatRateVatAmount"`
 	VatRateVatAmountHUF string `xml:"vatRateVatAmountHUF"`

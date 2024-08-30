@@ -15,14 +15,14 @@ import (
 
 const (
 	charset        = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	RequestVersion = "3.0"
-	HeaderVersion  = "1.0"
+	requestVersion = "3.0"
+	headerVersion  = "1.0"
 )
 
 // Header is the common header for all requests
 // A new RequestId and Timestamp is generated for each request
 type Header struct {
-	RequestId      string `xml:"common:requestId"`
+	RequestID      string `xml:"common:requestId"`
 	Timestamp      string `xml:"common:timestamp"`
 	RequestVersion string `xml:"common:requestVersion"`
 	HeaderVersion  string `xml:"common:headerVersion"`
@@ -51,7 +51,7 @@ type RequestSignature struct {
 
 // Software is the information about the software used for issuing the invoices
 type Software struct {
-	SoftwareId             string `xml:"softwareId"`
+	SoftwareID             string `xml:"softwareId"`
 	SoftwareName           string `xml:"softwareName"`
 	SoftwareOperation      string `xml:"softwareOperation"`
 	SoftwareMainVersion    string `xml:"softwareMainVersion"`
@@ -92,10 +92,10 @@ type Notification struct {
 // NewHeader creates a new Header with the given requestID and timestamp
 func NewHeader(requestID string, timestamp time.Time) *Header {
 	return &Header{
-		RequestId:      requestID,
+		RequestID:      requestID,
 		Timestamp:      timestamp.Format("2006-01-02T15:04:05.00Z"),
-		RequestVersion: RequestVersion,
-		HeaderVersion:  HeaderVersion,
+		RequestVersion: requestVersion,
+		HeaderVersion:  headerVersion,
 	}
 }
 
@@ -150,7 +150,7 @@ func NewSoftware(taxNumber tax.Identity, name string, operation string, version 
 	}
 
 	return &Software{
-		SoftwareId:             NewSoftwareID(taxNumber),
+		SoftwareID:             newSoftwareID(taxNumber),
 		SoftwareName:           name,
 		SoftwareOperation:      operation,
 		SoftwareMainVersion:    version,
@@ -161,7 +161,7 @@ func NewSoftware(taxNumber tax.Identity, name string, operation string, version 
 	}
 }
 
-func NewSoftwareID(taxNumber tax.Identity) string {
+func newSoftwareID(taxNumber tax.Identity) string {
 	// 18-length string:
 	//first characters are the country code and tax id
 	//the rest is random
@@ -171,7 +171,7 @@ func NewSoftwareID(taxNumber tax.Identity) string {
 	return taxNumber.String() + generateRandomString(lenRandom)
 }
 
-func NewRequestID(timestamp time.Time) string {
+func newRequestID(timestamp time.Time) string {
 	timeUnique := timestamp.Format("20060102150405")
 
 	randomNumber := rand.Intn(17)

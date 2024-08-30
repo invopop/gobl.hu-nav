@@ -12,7 +12,7 @@ type Address struct {
 	DetailedAddress *DetailedAddress `xml:"base:detailedAddress,omitempty"`
 }
 
-// DetailedAddressType represents detailed address data
+// DetailedAddress represents the address with all the details
 type DetailedAddress struct {
 	CountryCode         string `xml:"base:countryCode"`
 	Region              string `xml:"base:region,omitempty"`
@@ -28,7 +28,7 @@ type DetailedAddress struct {
 	LotNumber           string `xml:"base:lotNumber,omitempty"`
 }
 
-// SimpleAddressType represents a simple address
+// SimpleAddress represents an address without detailed information
 type SimpleAddress struct {
 	CountryCode             string `xml:"base:countryCode"`
 	Region                  string `xml:"base:region,omitempty"`

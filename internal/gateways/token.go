@@ -8,11 +8,13 @@ import (
 	"time"
 )
 
+// TokenInfo stores the token and its expiration time
 type TokenInfo struct {
 	Token      string
 	Expiration time.Time
 }
 
+// TokenExchangeRequest is the request for the token exchange
 type TokenExchangeRequest struct {
 	XMLName  xml.Name     `xml:"TokenExchangeRequest"`
 	Common   string       `xml:"xmlns:common,attr"`
@@ -22,6 +24,7 @@ type TokenExchangeRequest struct {
 	Software *Software    `xml:"software"`
 }
 
+// TokenExchangeResponse contains some header information, the token and the expiration time
 type TokenExchangeResponse struct {
 	XMLName              xml.Name  `xml:"TokenExchangeResponse"`
 	Header               *Header   `xml:"header"`
@@ -32,6 +35,7 @@ type TokenExchangeResponse struct {
 	TokenValidityTo      string    `xml:"tokenValidityTo"`
 }
 
+// GetToken gets the token from the NAV API
 func (g *Client) GetToken() error {
 	requestData := g.newTokenExchangeRequest()
 
@@ -98,7 +102,7 @@ func (g *Client) postTokenExchangeRequest(requestData TokenExchangeRequest) (*To
 
 func (g *Client) newTokenExchangeRequest() TokenExchangeRequest {
 	timestamp := time.Now().UTC()
-	requestID := NewRequestID(timestamp) //This must be unique for each request
+	requestID := newRequestID(timestamp) //This must be unique for each request
 	return TokenExchangeRequest{
 		Xmlns:    APIXMNLS,
 		Common:   APICommon,
@@ -108,15 +112,16 @@ func (g *Client) newTokenExchangeRequest() TokenExchangeRequest {
 	}
 }
 
+// Expired checks if the token is expired
 func (tok *TokenInfo) Expired() bool {
 	return time.Now().After(tok.Expiration)
 }
 
-func (tokenInfo *TokenInfo) decrypt(keyString string) error {
+func (tok *TokenInfo) decrypt(keyString string) error {
 	key := []byte(keyString)
 
 	// Decode the base64 encoded encrypted key
-	ciphertext, err := base64.StdEncoding.DecodeString(tokenInfo.Token)
+	ciphertext, err := base64.StdEncoding.DecodeString(tok.Token)
 	if err != nil {
 		return err
 	}
@@ -138,7 +143,7 @@ func (tokenInfo *TokenInfo) decrypt(keyString string) error {
 	// Remove padding (if any)
 	decrypted = unpad(decrypted)
 
-	tokenInfo.Token = string(decrypted)
+	tok.Token = string(decrypted)
 
 	return nil
 }

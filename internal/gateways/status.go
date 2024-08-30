@@ -6,6 +6,7 @@ import (
 	"time"
 )
 
+// QueryTransactionStatusRequest contains the needed data to query the status of a transaction
 type QueryTransactionStatusRequest struct {
 	XMLName               xml.Name     `xml:"QueryTransactionStatusRequest"`
 	Common                string       `xml:"xmlns:common,attr"`
@@ -13,10 +14,11 @@ type QueryTransactionStatusRequest struct {
 	Header                *Header      `xml:"common:header"`
 	User                  *UserRequest `xml:"common:user"`
 	Software              *Software    `xml:"software"`
-	TransactionId         string       `xml:"transactionId"`
+	TransactionID         string       `xml:"transactionId"`
 	ReturnOriginalRequest bool         `xml:"returnOriginalRequest,omitempty"`
 }
 
+// QueryTransactionStatusResponse contains the response from the NAV API after querying the status of a transaction
 type QueryTransactionStatusResponse struct {
 	XMLName           xml.Name           `xml:"QueryTransactionStatusResponse"`
 	Header            *Header            `xml:"header"`
@@ -25,12 +27,16 @@ type QueryTransactionStatusResponse struct {
 	ProcessingResults *ProcessingResults `xml:"processingResults"`
 }
 
+// ProcessingResults contains the results of a transaction
+// It contains a list of ProcessingResult, which contains the status of each invoice in the transaction
 type ProcessingResults struct {
 	ProcessingResult       []*ProcessingResult `xml:"processingResult"`
 	OriginalRequestVersion string              `xml:"originalRequestVersion"`
 	//AnnulmentData          *AnnulmentData      `xml:"annulmentData,omitempty"`
 }
 
+// ProcessingResult contains the status of an invoice in a transaction
+// It also contains the messages from the technical and business validations
 type ProcessingResult struct {
 	Index                       string                       `xml:"index"`
 	BatchIndex                  string                       `xml:"batchIndex,omitempty"`
@@ -41,12 +47,14 @@ type ProcessingResult struct {
 	OriginalRequest             string                       `xml:"originalRequest,omitempty"`
 }
 
+// TechnicalValidationMessages are the result of the technical validation
 type TechnicalValidationMessages struct {
 	ValidationResultCode string `xml:"validationResultCode"`
 	ValidationErrorCode  string `xml:"validationErrorCode,omitempty"`
 	Message              string `xml:"message,omitempty"`
 }
 
+// BusinessValidationMessages are the result of the business validation
 type BusinessValidationMessages struct {
 	ValidationResultCode string   `xml:"validationResultCode"`
 	ValidationErrorCode  string   `xml:"validationErrorCode,omitempty"`
@@ -54,6 +62,7 @@ type BusinessValidationMessages struct {
 	Pointer              *Pointer `xml:"pointer,omitempty"`
 }
 
+// Pointer points to the specific part of the invoice that caused the validation to fail
 type Pointer struct {
 	Tag                   string `xml:"tag,omitempty"`
 	Value                 string `xml:"value,omitempty"`
@@ -61,6 +70,7 @@ type Pointer struct {
 	OriginalInvoiceNumber string `xml:"originalInvoiceNumber,omitempty"`
 }
 
+// GetStatus queries the status of a transaction
 func (g *Client) GetStatus(transactionID string) ([]*ProcessingResult, error) {
 	requestData := g.newQueryTransactionStatusRequest(transactionID)
 	return g.queryTransactionStatus(requestData)
@@ -68,14 +78,14 @@ func (g *Client) GetStatus(transactionID string) ([]*ProcessingResult, error) {
 
 func (g *Client) newQueryTransactionStatusRequest(transactionID string) QueryTransactionStatusRequest {
 	timestamp := time.Now().UTC()
-	requestID := NewRequestID(timestamp)
+	requestID := newRequestID(timestamp)
 	return QueryTransactionStatusRequest{
 		Xmlns:         "http://schemas.nav.gov.hu/OSA/3.0/api",
 		Common:        "http://schemas.nav.gov.hu/NTCA/1.0/common",
 		Header:        NewHeader(requestID, timestamp),
 		User:          g.NewUser(requestID, timestamp),
 		Software:      g.software,
-		TransactionId: transactionID,
+		TransactionID: transactionID,
 	}
 }
 

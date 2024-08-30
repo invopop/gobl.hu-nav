@@ -12,7 +12,7 @@ type TaxNumber struct {
 	CountyCode string `xml:"base:countyCode,omitempty"`
 }
 
-func newTaxNumber(party *org.Party) (*TaxNumber, *TaxNumber, error) {
+func newTaxNumber(party *org.Party) (*TaxNumber, *TaxNumber) {
 	taxID := party.TaxID
 	if taxID.Country == l10n.HU.Tax() {
 		if len(taxID.Code) == 11 {
@@ -20,19 +20,19 @@ func newTaxNumber(party *org.Party) (*TaxNumber, *TaxNumber, error) {
 			if taxID.Code.String()[8:9] == "5" {
 				groupMemberCode := party.Identities[0].Code.String()
 				return newHungarianTaxNumber(taxID.Code.String()),
-					newHungarianTaxNumber(groupMemberCode), nil
+					newHungarianTaxNumber(groupMemberCode)
 			}
-			return newHungarianTaxNumber(taxID.Code.String()), nil, nil
+			return newHungarianTaxNumber(taxID.Code.String()), nil
 		}
 		// If the tax number is not 11 characters long, then it is 8 characters long
 		return &TaxNumber{
 			TaxPayerID: taxID.Code.String(),
-		}, nil, nil
+		}, nil
 	}
 	// If it is not a Hungarian tax number, then return the tax number with the country code
 	return &TaxNumber{
 		TaxPayerID: taxID.String(),
-	}, nil, nil
+	}, nil
 
 }
 

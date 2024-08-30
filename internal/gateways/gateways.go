@@ -1,9 +1,11 @@
+// Package gateways provides all the endpoint connections to the NAV API
 package gateways
 
 import (
 	"github.com/go-resty/resty/v2"
 )
 
+// Client is the client to the NAV API
 type Client struct {
 	user     *User
 	software *Software
@@ -12,6 +14,7 @@ type Client struct {
 	rest *resty.Client
 }
 
+// User contains all the user information needed to authenticate to the NAV API
 type User struct {
 	login       string
 	password    string
@@ -38,7 +41,7 @@ const (
 	StatusEndpoint        = "invoiceService/v3/queryTransactionStatus"
 )
 
-// NewGateways creates a new gateways instance
+// New creates a new gateways instance
 func New(user *User, software *Software, environment Environment) *Client {
 	c := &Client{
 		user:     user,

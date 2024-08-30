@@ -80,7 +80,7 @@ type LineNetAmountData struct {
 	LineNetAmountHUF string `xml:"lineNetAmountHUF"`
 }
 
-// VatRate contains the VAT rate and amount of a line.
+// LineVatData contains the VAT amount in the invoice currency and HUF
 type LineVatData struct {
 	LineVatAmount    string `xml:"lineVatAmount"`
 	LineVatAmountHUF string `xml:"lineVatAmountHUF"`

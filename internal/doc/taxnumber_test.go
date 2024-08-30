@@ -88,11 +88,8 @@ func TestNewTaxNumber(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mainTaxNum, groupTaxNum, err := newTaxNumber(tt.party)
+			mainTaxNum, groupTaxNum := newTaxNumber(tt.party)
 
-			if err != tt.expectedErr {
-				t.Errorf("expected error %v, got %v", tt.expectedErr, err)
-			}
 			if !reflect.DeepEqual(mainTaxNum, tt.expectedMain) {
 				t.Errorf("expected mainTaxNum %v, got %v", tt.expectedMain, mainTaxNum)
 			}

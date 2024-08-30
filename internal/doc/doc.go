@@ -22,7 +22,7 @@ const (
 	XSIDataSchema = "http://schemas.nav.gov.hu/OSA/3.0/data invoiceData.xsd"
 )
 
-const BaseDirectory = "../../test/data/out/"
+const baseDirectory = "../../test/data/out/"
 
 // Standard error responses.
 var (
@@ -126,7 +126,7 @@ func (d *Document) toByte() ([]byte, error) {
 }
 
 func saveOutput(xmlData []byte, fileName string) error {
-	err := os.WriteFile(BaseDirectory+fileName, xmlData, 0644)
+	err := os.WriteFile(baseDirectory+fileName, xmlData, 0644)
 	if err != nil {
 		return fmt.Errorf("Error writing XML to file: %w", err)
 	}

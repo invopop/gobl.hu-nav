@@ -40,12 +40,12 @@ func TestReportInvoice(t *testing.T) {
 
 	navClient := NewNav(user, software, InTesting())
 
-	invoice, err := os.ReadFile("test/data/out/credit-note.xml")
+	invoice, err := os.ReadFile("test/data/out/invoice-standard.xml")
 	if err != nil {
 		t.Fatalf("Failed to read sample invoice file: %v", err)
 	}
 
-	transactionID, err := navClient.ReportInvoice(invoice, "MODIFY")
+	transactionID, err := navClient.ReportInvoice(invoice, "CREATE")
 
 	fmt.Println("Transaction ID: ", transactionID)
 

@@ -7,9 +7,9 @@ import (
 )
 
 const (
-	VatStatusPrivatePerson = "PRIVATE_PERSON"
-	VatStatusDomestic      = "DOMESTIC"
-	VatStatusOther         = "OTHER"
+	vatStatusPrivatePerson = "PRIVATE_PERSON"
+	vatStatusDomestic      = "DOMESTIC"
+	vatStatusOther         = "OTHER"
 )
 
 // CustomerInfo contains the customer data.
@@ -38,45 +38,42 @@ type CustomerTaxNumber struct {
 	GroupMemberTaxNumber *TaxNumber `xml:"groupMemberTaxNumber,omitempty"`
 }
 
-func newCustomerInfo(customer *org.Party) (*CustomerInfo, error) {
+func newCustomerInfo(customer *org.Party) *CustomerInfo {
 	taxID := customer.TaxID
 	if taxID == nil {
 		return &CustomerInfo{
-			CustomerVatStatus: VatStatusPrivatePerson,
+			CustomerVatStatus: vatStatusPrivatePerson,
 			CustomerName:      customer.Name,
 			CustomerAddress:   newAddress(customer.Addresses[0]),
-		}, nil
+		}
 	}
-	status := VatStatusOther
+	status := vatStatusOther
 
 	if taxID.Country == l10n.HU.Tax() {
 		if taxID.Code.String() == "" || (taxID.Code.String()[0:1] == "8" && len(taxID.Code) == 10) {
 			return &CustomerInfo{
-				CustomerVatStatus: VatStatusPrivatePerson,
+				CustomerVatStatus: vatStatusPrivatePerson,
 				CustomerName:      customer.Name,
 				CustomerAddress:   newAddress(customer.Addresses[0]),
-			}, nil
+			}
 		}
-		status = VatStatusDomestic
+		status = vatStatusDomestic
 
 	}
 
-	vatData, err := newVatData(customer, status)
-	if err != nil {
-		return nil, err
-	}
+	vatData := newVatData(customer, status)
 
 	return &CustomerInfo{
 		CustomerVatStatus: status,
 		CustomerVatData:   vatData,
 		CustomerName:      customer.Name,
 		CustomerAddress:   newAddress(customer.Addresses[0]),
-	}, nil
+	}
 }
 
-func newVatData(customer *org.Party, status string) (*VatData, error) {
-	if status == VatStatusOther {
-		return newOtherVatData(customer.TaxID), nil
+func newVatData(customer *org.Party, status string) *VatData {
+	if status == vatStatusOther {
+		return newOtherVatData(customer.TaxID)
 	}
 	return newDomesticVatData(customer)
 }
@@ -92,11 +89,8 @@ func newOtherVatData(taxID *tax.Identity) *VatData {
 	}
 }
 
-func newDomesticVatData(customer *org.Party) (*VatData, error) {
-	taxNumber, groupNumber, err := newTaxNumber(customer)
-	if err != nil {
-		return nil, err
-	}
+func newDomesticVatData(customer *org.Party) *VatData {
+	taxNumber, groupNumber := newTaxNumber(customer)
 
 	if groupNumber != nil {
 		return &VatData{
@@ -106,7 +100,7 @@ func newDomesticVatData(customer *org.Party) (*VatData, error) {
 				CountyCode:           taxNumber.CountyCode,
 				GroupMemberTaxNumber: groupNumber,
 			},
-		}, nil
+		}
 	}
 
 	return &VatData{
@@ -115,7 +109,7 @@ func newDomesticVatData(customer *org.Party) (*VatData, error) {
 			VatCode:    taxNumber.VatCode,
 			CountyCode: taxNumber.CountyCode,
 		},
-	}, nil
+	}
 }
 
 var europeanCountryCodes = []l10n.Code{

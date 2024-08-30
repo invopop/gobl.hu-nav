@@ -12,15 +12,9 @@ type InvoiceHead struct {
 }
 
 func newInvoiceHead(inv *bill.Invoice) (*InvoiceHead, error) {
-	supplierInfo, err := newSupplierInfo(inv.Supplier)
-	if err != nil {
-		return nil, err
-	}
+	supplierInfo := newSupplierInfo(inv.Supplier)
 
-	customerInfo, err := newCustomerInfo(inv.Customer)
-	if err != nil {
-		return nil, err
-	}
+	customerInfo := newCustomerInfo(inv.Customer)
 
 	detail, err := newInvoiceDetail(inv)
 	if err != nil {

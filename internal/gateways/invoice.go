@@ -39,14 +39,16 @@ type ElectronicInvoiceHash struct {
 	Value      string `xml:",chardata"`
 }
 
+// ManageInvoiceResponse contains all the information received after reporting an invoice
 type ManageInvoiceResponse struct {
 	XMLName       xml.Name  `xml:"ManageInvoiceResponse"`
 	Header        *Header   `xml:"header"`
 	Result        *Result   `xml:"result"`
 	Software      *Software `xml:"software"`
-	TransactionId string    `xml:"transactionId"`
+	TransactionID string    `xml:"transactionId"`
 }
 
+// ReportInvoice reports an invoice to the NAV API
 func (g *Client) ReportInvoice(invoice []byte, operationType string) (string, error) {
 	// We first fetch the exchange token
 	err := g.GetToken()
@@ -60,7 +62,7 @@ func (g *Client) ReportInvoice(invoice []byte, operationType string) (string, er
 
 func (g *Client) newManageInvoiceRequest(invoice string, operationType string) ManageInvoiceRequest {
 	timestamp := time.Now().UTC()
-	requestID := NewRequestID(timestamp)
+	requestID := newRequestID(timestamp)
 	return ManageInvoiceRequest{
 		Common:        "http://schemas.nav.gov.hu/NTCA/1.0/common",
 		Xmlns:         "http://schemas.nav.gov.hu/OSA/3.0/api",
@@ -98,7 +100,7 @@ func (g *Client) postManageInvoiceRequest(requestData ManageInvoiceRequest) (str
 		if err != nil {
 			return "", err
 		}
-		return manageInvoiceResponse.TransactionId, nil
+		return manageInvoiceResponse.TransactionID, nil
 	}
 
 	var generalErrorResponse GeneralErrorResponse
