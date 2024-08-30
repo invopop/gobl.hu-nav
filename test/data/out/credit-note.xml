@@ -1,9 +1,14 @@
 <InvoiceData xmlns="http://schemas.nav.gov.hu/OSA/3.0/data" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://schemas.nav.gov.hu/OSA/3.0/data invoiceData.xsd" xmlns:common="http://schemas.nav.gov.hu/NTCA/1.0/common" xmlns:base="http://schemas.nav.gov.hu/OSA/3.0/base">
-  <invoiceNumber>001</invoiceNumber>
-  <invoiceIssueDate>2024-02-13</invoiceIssueDate>
+  <invoiceNumber>008</invoiceNumber>
+  <invoiceIssueDate>2024-08-23</invoiceIssueDate>
   <completenessIndicator>false</completenessIndicator>
   <invoiceMain>
     <invoice>
+      <invoiceReference>
+        <originalInvoiceNumber>007</originalInvoiceNumber>
+        <modifyWithoutMaster>false</modifyWithoutMaster>
+        <modificationIndex>1</modificationIndex>
+      </invoiceReference>
       <invoiceHead>
         <supplierInfo>
           <supplierTaxNumber>
@@ -11,14 +16,12 @@
           </supplierTaxNumber>
           <supplierName>Provide One Kft.</supplierName>
           <supplierAddress>
-            <base:detailedAddress>
+            <base:simpleAddress>
               <base:countryCode>HU</base:countryCode>
               <base:postalCode>1061</base:postalCode>
               <base:city>Budapest</base:city>
-              <base:streetName>Andrássy út</base:streetName>
-              <base:publicPlaceCategory>utca</base:publicPlaceCategory>
-              <base:number>16</base:number>
-            </base:detailedAddress>
+              <base:additionalAddressDetail>Andrássy út, 16</base:additionalAddressDetail>
+            </base:simpleAddress>
           </supplierAddress>
         </supplierInfo>
         <customerInfo>
@@ -30,19 +33,17 @@
           </customerVatData>
           <customerName>Minta Fogyasztó</customerName>
           <customerAddress>
-            <base:detailedAddress>
+            <base:simpleAddress>
               <base:countryCode>HU</base:countryCode>
               <base:postalCode>1052</base:postalCode>
               <base:city>Budapest</base:city>
-              <base:streetName>Váci utca</base:streetName>
-              <base:publicPlaceCategory>utca</base:publicPlaceCategory>
-              <base:number>25</base:number>
-            </base:detailedAddress>
+              <base:additionalAddressDetail>Váci utca, 25</base:additionalAddressDetail>
+            </base:simpleAddress>
           </customerAddress>
         </customerInfo>
         <invoiceDetail>
           <invoiceCategory>NORMAL</invoiceCategory>
-          <invoiceDeliveryDate>2024-02-13</invoiceDeliveryDate>
+          <invoiceDeliveryDate>2024-08-23</invoiceDeliveryDate>
           <currencyCode>HUF</currencyCode>
           <exchangeRate>1</exchangeRate>
           <invoiceAppearance>EDI</invoiceAppearance>
@@ -54,14 +55,14 @@
           <lineNumber>1</lineNumber>
           <lineExpressionIndicator>true</lineExpressionIndicator>
           <lineDescription>Fejlesztési szolgáltatások</lineDescription>
-          <quantity>20</quantity>
+          <quantity>-20</quantity>
           <unitOfMeasure>HOUR</unitOfMeasure>
           <unitPrice>30000.00</unitPrice>
           <unitPriceHUF>30000.00</unitPriceHUF>
           <lineAmountsNormal>
             <lineNetAmountData>
-              <lineNetAmount>600000.00</lineNetAmount>
-              <lineNetAmountHUF>600000.00</lineNetAmountHUF>
+              <lineNetAmount>-600000.00</lineNetAmount>
+              <lineNetAmountHUF>-600000.00</lineNetAmountHUF>
             </lineNetAmountData>
             <lineVatRate>
               <vatPercentage>0.27</vatPercentage>
@@ -76,18 +77,18 @@
               <vatPercentage>0.27</vatPercentage>
             </vatRate>
             <vatRateNetData>
-              <vatRateNetAmount>600000.00</vatRateNetAmount>
-              <vatRateNetAmountHUF>600000.00</vatRateNetAmountHUF>
+              <vatRateNetAmount>-600000.00</vatRateNetAmount>
+              <vatRateNetAmountHUF>-600000.00</vatRateNetAmountHUF>
             </vatRateNetData>
             <vatRateVatData>
-              <vatRateVatAmount>162000.00</vatRateVatAmount>
-              <vatRateVatAmountHUF>162000.00</vatRateVatAmountHUF>
+              <vatRateVatAmount>-162000.00</vatRateVatAmount>
+              <vatRateVatAmountHUF>-162000.00</vatRateVatAmountHUF>
             </vatRateVatData>
           </summaryByVatRate>
-          <invoiceNetAmount>600000.00</invoiceNetAmount>
-          <invoiceNetAmountHUF>600000.00</invoiceNetAmountHUF>
-          <invoiceVatAmount>162000.00</invoiceVatAmount>
-          <invoiceVatAmountHUF>162000.00</invoiceVatAmountHUF>
+          <invoiceNetAmount>-600000.00</invoiceNetAmount>
+          <invoiceNetAmountHUF>-600000.00</invoiceNetAmountHUF>
+          <invoiceVatAmount>-162000.00</invoiceVatAmount>
+          <invoiceVatAmountHUF>-162000.00</invoiceVatAmountHUF>
         </summaryNormal>
       </invoiceSummary>
     </invoice>

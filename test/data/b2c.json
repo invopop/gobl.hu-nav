@@ -12,23 +12,15 @@
         "$schema": "https://gobl.org/draft-0/bill/invoice",
         "type": "standard",
         "series": "SAMPLE",
-        "code": "001",
-        "issue_date": "2024-02-13",
+        "code": "009",
+        "issue_date": "2024-08-23",
         "currency": "HUF",
         "supplier": {
             "name": "Provide One Kft.",
             "tax_id": {
                 "country": "HU",
-                "code": "12345678"
+                "code": "12345678215"
             },
-            "people": [
-                {
-                    "name": {
-                        "given": "János",
-                        "surname": "Kovács"
-                    }
-                }
-            ],
             "addresses": [
                 {
                     "num": "16",
@@ -37,24 +29,10 @@
                     "code": "1061",
                     "country": "HU"
                 }
-            ],
-            "emails": [
-                {
-                    "addr": "szamlazas@example.com"
-                }
-            ],
-            "telephones": [
-                {
-                    "num": "+36100200300"
-                }
             ]
         },
         "customer": {
             "name": "Minta Fogyasztó",
-            "tax_id": {
-                "country": "HU",
-                "code": "87654321"
-            },
             "addresses": [
                 {
                     "num": "25",
@@ -62,11 +40,6 @@
                     "locality": "Budapest",
                     "code": "1052",
                     "country": "HU"
-                }
-            ],
-            "emails": [
-                {
-                    "addr": "email@minta.com"
                 }
             ]
         },
@@ -90,12 +63,9 @@
                 "total": "600000.00"
             }
         ],
-        "ordering": {
-            "code": "XR-2024-2"
-        },
         "payment": {
-            "terms": {
-                "detail": "lorem ipsum"
+            "instructions": {
+                "key": "credit-transfer"
             }
         },
         "totals": {

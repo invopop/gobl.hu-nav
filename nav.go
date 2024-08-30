@@ -1,3 +1,4 @@
+// Package nav is the package used to interact with the NAV API
 package nav
 
 import (
@@ -11,13 +12,17 @@ import (
 	"github.com/invopop/gobl/tax"
 )
 
+// Nav is the main struct for interacting with the NAV API
 type Nav struct {
 	gw  *gateways.Client
 	env gateways.Environment
 }
 
+// Option is a function used for the different options of the Nav client
+// For the moment, the only option is the environment (production or testing)
 type Option func(*Nav)
 
+// NewNav creates a new Nav client
 func NewNav(user *gateways.User, software *gateways.Software, opts ...Option) *Nav {
 
 	c := new(Nav)
@@ -45,16 +50,19 @@ func InTesting() Option {
 	}
 }
 
+// FetchToken fetches the token from the NAV API
 func (n *Nav) FetchToken() error {
 	return n.gw.GetToken()
 }
 
-func (n *Nav) ReportInvoice(invoice []byte) (string, error) {
-	return n.gw.ReportInvoice(invoice)
+// ReportInvoice reports an invoice to the NAV API
+func (n *Nav) ReportInvoice(invoice []byte, operationType string) (string, error) {
+	return n.gw.ReportInvoice(invoice, operationType)
 }
 
-func (n *Nav) GetTransactionStatus(transactionId string) ([]*gateways.ProcessingResult, error) {
-	return n.gw.GetStatus(transactionId)
+// GetTransactionStatus gets the status of an invoice reporting transaction
+func (n *Nav) GetTransactionStatus(transactionID string) ([]*gateways.ProcessingResult, error) {
+	return n.gw.GetStatus(transactionID)
 }
 
 // NewSoftware creates a new Software with the information about the software developer
@@ -67,6 +75,7 @@ func NewUser(login string, password string, signKey string, exchangeKey string, 
 	return gateways.NewUser(login, password, signKey, exchangeKey, taxNumber)
 }
 
+// NewDocument creates a new Nav Document from a GOBL envelope
 func NewDocument(env *gobl.Envelope) (*doc.Document, error) {
 	return doc.NewDocument(env)
 }

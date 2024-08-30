@@ -43,7 +43,7 @@ func TestNewInvoiceDetail_NormalInvoice(t *testing.T) {
 	assert.Equal(t, "", detail.InvoiceDeliveryPeriodStart)
 	assert.Equal(t, "", detail.InvoiceDeliveryPeriodEnd)
 	assert.Equal(t, "USD", detail.CurrencyCode)
-	assert.Equal(t, 358.35432, detail.ExchangeRate)
+	assert.Equal(t, "358.354320", detail.ExchangeRate)
 	assert.Equal(t, "CARD", detail.PaymentMethod)
 	assert.Equal(t, "2023-08-20", detail.PaymentDate)
 	assert.Equal(t, "EDI", detail.InvoiceAppearance)

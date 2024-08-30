@@ -61,7 +61,7 @@ func newInvoiceSummary(inv *bill.Invoice) (*InvoiceSummary, error) {
 	totalVat := num.MakeAmount(0, 5)
 	summaryVat := []*SummaryByVatRate{}
 	taxInfo := newTaxInfo(inv)
-	ex, err := getInvoiceRate(inv)
+	ex, err := getExchangeRate(inv)
 
 	if err != nil {
 		return nil, err

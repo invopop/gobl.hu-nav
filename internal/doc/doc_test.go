@@ -2,21 +2,18 @@ package doc
 
 import (
 	"encoding/json"
-	"encoding/xml"
 	"fmt"
 	"os"
 	"testing"
 
 	"github.com/invopop/gobl"
-	"github.com/lestrrat-go/libxml2"
-	"github.com/lestrrat-go/libxml2/xsd"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestNewDocument(t *testing.T) {
+func TestStandardInvoice(t *testing.T) {
 	// Read the test invoice JSON file
-	data, err := os.ReadFile("../../test/data/invoice_test.json")
+	data, err := os.ReadFile("../../test/data/invoice-standard.json")
 	require.NoError(t, err, "Failed to read test invoice file")
 
 	// Unmarshal the JSON into a gobl.Envelope
@@ -28,58 +25,102 @@ func TestNewDocument(t *testing.T) {
 	doc, err := NewDocument(env)
 	require.NoError(t, err, "Failed to create new document")
 
-	xmlData, err := xml.MarshalIndent(doc, "", "  ")
-	if err != nil {
-		fmt.Printf("Error marshalling to XML: %v\n", err)
-		return
-	}
+	xmlData, err := doc.toByte()
+	require.NoError(t, err, "Failed to marshal document to XML")
 
-	err = os.WriteFile("../../test/data/out/output.xml", xmlData, 0644)
-	if err != nil {
-		fmt.Println("Error writing XML to file:", err)
-		return
-	}
+	err = saveOutput(xmlData, "invoice-standard.xml")
+	require.NoError(t, err, "Failed to save XML output")
 
-	// 2. Load XSD schema
-	xsdContent, err := os.ReadFile("../../test/schemas/invoiceData.xsd")
-	if err != nil {
-		fmt.Println("Error reading XSD file:", err)
-		return
-	}
-
-	schema, err := xsd.Parse(xsdContent)
-	if err != nil {
-		fmt.Println("Error parsing XSD:", err)
-		return
-	}
-	defer schema.Free()
-
-	// 3. Parse XML
-	docXML, err := libxml2.ParseString(string(xmlData))
-	if err != nil {
-		fmt.Println("Error parsing XML:", err)
-		return
-	}
-	defer docXML.Free()
-
-	// 4. Validate XML against schema
-	if err := schema.Validate(docXML); err != nil {
-		fmt.Println("Validation error:", err)
-	} else {
-		fmt.Println("XML is valid according to the schema")
-	}
+	err = schemaValidation(xmlData)
+	require.NoError(t, err, "Failed to validate XML output")
 
 	fmt.Println(string(xmlData))
 
-	// Assert the expected values
-	assert.Equal(t, XMNLSDATA, doc.XMLNS, "Unexpected XMLNS value")
-	assert.Equal(t, XMNLXSI, doc.XMLNSXsi, "Unexpected XMLNSXsi value")
-	assert.Equal(t, XSIDataSchema, doc.XSISchema, "Unexpected XSISchema value")
-	assert.Equal(t, XMNLSCOMMON, doc.XMLNSCommon, "Unexpected XMLNSCommon value")
-	assert.Equal(t, XMNLBASE, doc.XMLNSBase, "Unexpected XMLNSBase value")
-	assert.False(t, doc.CompletenessIndicator, "Unexpected CompletenessIndicator value")
+}
 
-	// Assert that InvoiceMain is not nil
-	assert.NotNil(t, doc.InvoiceMain, "InvoiceMain should not be nil")
+func TestCreditNote(t *testing.T) {
+	// Read the test invoice JSON file
+	data, err := os.ReadFile("../../test/data/credit-note.json")
+	require.NoError(t, err, "Failed to read test invoice file")
 
+	// Unmarshal the JSON into a gobl.Envelope
+	env := new(gobl.Envelope)
+	err = json.Unmarshal(data, env)
+	require.NoError(t, err, "Failed to unmarshal test invoice JSON")
+
+	// Call the NewDocument function
+	doc, err := NewDocument(env)
+	require.NoError(t, err, "Failed to create new document")
+
+	xmlData, err := doc.toByte()
+	require.NoError(t, err, "Failed to marshal document to XML")
+
+	err = saveOutput(xmlData, "credit-note.xml")
+	require.NoError(t, err, "Failed to save XML output")
+
+	err = schemaValidation(xmlData)
+	require.NoError(t, err, "Failed to validate XML output")
+
+	fmt.Println(string(xmlData))
+
+	assert.Equal(t, doc.InvoiceMain.Invoice.InvoiceLines.Lines[0].LineAmountsNormal.LineNetAmountData.LineNetAmount, "-600000.00", "lineNetAmount should be negative")
+	assert.Equal(t, doc.InvoiceMain.Invoice.InvoiceSummary.SummaryNormal.SummaryByVatRate[0].VatRateVatData.VatRateVatAmount, "-162000.00", "totalAmount should be negative")
+
+}
+
+func TestB2CInvoice(t *testing.T) {
+	// Read the test invoice JSON file
+	data, err := os.ReadFile("../../test/data/b2c.json")
+	require.NoError(t, err, "Failed to read test invoice file")
+
+	// Unmarshal the JSON into a gobl.Envelope
+	env := new(gobl.Envelope)
+	err = json.Unmarshal(data, env)
+	require.NoError(t, err, "Failed to unmarshal test invoice JSON")
+
+	// Call the NewDocument function
+	doc, err := NewDocument(env)
+	require.NoError(t, err, "Failed to create new document")
+
+	xmlData, err := doc.toByte()
+	require.NoError(t, err, "Failed to marshal document to XML")
+
+	err = saveOutput(xmlData, "b2c.xml")
+	require.NoError(t, err, "Failed to save XML output")
+
+	err = schemaValidation(xmlData)
+	require.NoError(t, err, "Failed to validate XML output")
+
+	fmt.Println(string(xmlData))
+
+	assert.Equal(t, doc.InvoiceMain.Invoice.InvoiceHead.CustomerInfo.CustomerVatStatus, "PRIVATE_PERSON", "customerVatStatus should be PRIVATE_PERSON")
+}
+
+func TestForeignInvoice(t *testing.T) {
+	// Read the test invoice JSON file
+	data, err := os.ReadFile("../../test/data/foreign.json")
+	require.NoError(t, err, "Failed to read test invoice file")
+
+	// Unmarshal the JSON into a gobl.Envelope
+	env := new(gobl.Envelope)
+	err = json.Unmarshal(data, env)
+	require.NoError(t, err, "Failed to unmarshal test invoice JSON")
+
+	// Call the NewDocument function
+	doc, err := NewDocument(env)
+	require.NoError(t, err, "Failed to create new document")
+
+	xmlData, err := doc.toByte()
+	require.NoError(t, err, "Failed to marshal document to XML")
+
+	err = saveOutput(xmlData, "foreign.xml")
+	require.NoError(t, err, "Failed to save XML output")
+
+	err = schemaValidation(xmlData)
+	require.NoError(t, err, "Failed to validate XML output")
+
+	fmt.Println(string(xmlData))
+
+	assert.Equal(t, doc.InvoiceMain.Invoice.InvoiceLines.Lines[0].LineAmountsNormal.LineNetAmountData.LineNetAmount, "2000.00", "lineNetAmount should be 2000.00")
+	assert.NotNil(t, doc.InvoiceMain.Invoice.InvoiceHead.CustomerInfo.CustomerVatData.ThirdStateTaxID, "thirdStateTaxID should not be nil")
 }

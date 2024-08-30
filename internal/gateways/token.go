@@ -73,7 +73,10 @@ func (g *Client) postTokenExchangeRequest(requestData TokenExchangeRequest) (*To
 		if err != nil {
 			expirationTime, err = time.Parse("2006-01-02T15:04:05.00Z", tokenExchangeResponse.TokenValidityTo)
 			if err != nil {
-				return nil, err
+				expirationTime, err = time.Parse("2006-01-02T15:04:05.0Z", tokenExchangeResponse.TokenValidityTo)
+				if err != nil {
+					return nil, err
+				}
 			}
 		}
 

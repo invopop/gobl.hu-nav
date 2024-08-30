@@ -61,14 +61,13 @@ func newVatRateTotal(rate *tax.RateTotal, info *taxInfo) (*VatRate, error) {
 		return &VatRate{VatContent: rate.Amount.Rescale(2).String()}, nil
 	}
 
-	// Check if in the rate extensions there is extkeyexemptioncode or extkeyvatoutofscopecode
-	for k, v := range rate.Ext {
-		if k == hu.ExtKeyExemptionCode {
-			return &VatRate{VatExemption: &DetailedReason{Case: v.String(), Reason: "Exempt"}}, nil
-		}
-
-		if k == hu.ExtKeyVatOutOfScopeCode {
-			return &VatRate{VatOutOfScope: &DetailedReason{Case: v.String(), Reason: "Out of Scope"}}, nil
+	value, exists := rate.Ext[hu.ExtKeyExemptionCode]
+	if exists {
+		switch value.String() {
+		case "AAM", "TAM", "KBAET", "KBAUK", "EAM", "NAM", "UNKNOWKN":
+			return &VatRate{VatExemption: &DetailedReason{Case: value.String(), Reason: "Exempt"}}, nil
+		case "ATK", "EUFAD37", "EUE", "HO":
+			return &VatRate{VatOutOfScope: &DetailedReason{Case: value.String(), Reason: "Out of Scope"}}, nil
 		}
 	}
 
@@ -109,14 +108,13 @@ func newVatRateCombo(c *tax.Combo, info *taxInfo) (*VatRate, error) {
 		return &VatRate{VatPercentage: c.Percent.Base().String()}, nil
 	}
 
-	// Check if in the rate extensions there is extkeyexemptioncode or extkeyvatoutofscopecode
-	for k, v := range c.Ext {
-		if k == hu.ExtKeyExemptionCode {
-			return &VatRate{VatExemption: &DetailedReason{Case: v.String(), Reason: "Exempt"}}, nil
-		}
-
-		if k == hu.ExtKeyVatOutOfScopeCode {
-			return &VatRate{VatOutOfScope: &DetailedReason{Case: v.String(), Reason: "Out of Scope"}}, nil
+	value, exists := c.Ext[hu.ExtKeyExemptionCode]
+	if exists {
+		switch value.String() {
+		case "AAM", "TAM", "KBAET", "KBAUK", "EAM", "NAM", "UNKNOWKN":
+			return &VatRate{VatExemption: &DetailedReason{Case: value.String(), Reason: "Exempt"}}, nil
+		case "ATK", "EUFAD37", "EUE", "HO":
+			return &VatRate{VatOutOfScope: &DetailedReason{Case: value.String(), Reason: "Out of Scope"}}, nil
 		}
 	}
 

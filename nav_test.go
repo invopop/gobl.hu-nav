@@ -40,25 +40,19 @@ func TestReportInvoice(t *testing.T) {
 
 	navClient := NewNav(user, software, InTesting())
 
-	invoice, err := os.ReadFile("test/data/out/output.xml")
+	invoice, err := os.ReadFile("test/data/out/credit-note.xml")
 	if err != nil {
 		t.Fatalf("Failed to read sample invoice file: %v", err)
 	}
 
-	transactionId, err := navClient.ReportInvoice(invoice)
+	transactionID, err := navClient.ReportInvoice(invoice, "MODIFY")
 
-	fmt.Println("Transaction ID: ", transactionId)
+	fmt.Println("Transaction ID: ", transactionID)
 
 	// Assert the result
-	if err != nil {
-		t.Errorf("ReportInvoice returned an unexpected error: %v", err)
-	}
 	require.NoError(t, err, "Expected no error")
 
-	resultsList, err := navClient.GetTransactionStatus(transactionId)
-	if err != nil {
-		t.Errorf("GetTransactionStatus returned an unexpected error: %v", err)
-	}
+	resultsList, err := navClient.GetTransactionStatus(transactionID)
 	require.NoError(t, err, "Expected no error")
 
 	// Print result in xml format for debugging

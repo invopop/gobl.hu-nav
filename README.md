@@ -126,14 +126,14 @@ gobl.nav convert ./test/data/invoice.json
 
 ## Limitations/Things to do
 
+### Invoice Modification
+- For invoice modification the only step left is to get the line number of the invoice that we want to modify and include it in the field `LineModificationReference`
+
 ### Doc Conversion
 - Batch invoicing not supported
-- Modification of invoices not supported
 - Support fiscal representatives
 - Aggregate invoices not supported
 - Product refund charges not supported (Field Product Fee Summary in the Invoice)
 - Nav supports 100 invoice creation/modification in the same request. For the moment, we only support 1 invoice at each request.
-
-## Tags, Tax and Extensions
 
 

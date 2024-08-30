@@ -1,14 +1,19 @@
+// Package doc includes the conversion from GOBL to Nav XML format.
 package doc
 
 import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"os"
 
 	"github.com/invopop/gobl"
 	"github.com/invopop/gobl/bill"
+	"github.com/lestrrat-go/libxml2"
+	"github.com/lestrrat-go/libxml2/xsd"
 )
 
+// XML schemas
 const (
 	XMNLSDATA     = "http://schemas.nav.gov.hu/OSA/3.0/data"
 	XMNLSCOMMON   = "http://schemas.nav.gov.hu/NTCA/1.0/common"
@@ -16,6 +21,8 @@ const (
 	XMNLXSI       = "http://www.w3.org/2001/XMLSchema-instance"
 	XSIDataSchema = "http://schemas.nav.gov.hu/OSA/3.0/data invoiceData.xsd"
 )
+
+const BaseDirectory = "../../test/data/out/"
 
 // Standard error responses.
 var (
@@ -58,19 +65,85 @@ func NewDocument(env *gobl.Envelope) (*Document, error) {
 	if !ok {
 		return nil, fmt.Errorf("invalid type %T", env.Document)
 	}
-	d := new(Document)
-	d.XMLNS = XMNLSDATA
-	d.XMLNSXsi = XMNLXSI
-	d.XSISchema = XSIDataSchema
-	d.XMLNSCommon = XMNLSCOMMON
-	d.XMLNSBase = XMNLBASE
-	d.InvoiceNumber = inv.Code
-	d.InvoiceIssueDate = inv.IssueDate.String()
-	d.CompletenessIndicator = false
+
+	// Invert if we're dealing with a credit note
+	if inv.Type == bill.InvoiceTypeCreditNote {
+		if err := inv.Invert(); err != nil {
+			return nil, fmt.Errorf("inverting invoice: %w", err)
+		}
+	}
+
+	d := &Document{
+		XMLNS:                 XMNLSDATA,
+		XMLNSXsi:              XMNLXSI,
+		XSISchema:             XSIDataSchema,
+		XMLNSCommon:           XMNLSCOMMON,
+		XMLNSBase:             XMNLBASE,
+		InvoiceNumber:         inv.Code,
+		InvoiceIssueDate:      inv.IssueDate.String(),
+		CompletenessIndicator: false,
+	}
 	main, err := newInvoiceMain(inv)
 	if err != nil {
 		return nil, err
 	}
 	d.InvoiceMain = main
 	return d, nil
+}
+
+func schemaValidation(xmlData []byte) error {
+
+	schema, err := loadSchema()
+	if err != nil {
+		return fmt.Errorf("error loading schema: %w", err)
+	}
+
+	docXML, err := libxml2.ParseString(string(xmlData))
+	if err != nil {
+		return fmt.Errorf("error parsing XML: %w", err)
+	}
+	defer docXML.Free()
+
+	if err := schema.Validate(docXML); err != nil {
+		validationErrors := err.(xsd.SchemaValidationError)
+		fmt.Println("XML Validation Errors:")
+		for _, verr := range validationErrors.Errors() {
+			fmt.Printf("- %s\n", verr.Error())
+		}
+		return fmt.Errorf("XML validation failed: %w", err)
+	}
+
+	return nil
+}
+
+func (d *Document) toByte() ([]byte, error) {
+	xmlData, err := xml.MarshalIndent(d, "", "  ")
+	if err != nil {
+		return nil, fmt.Errorf("Error marshalling to XML: %w", err)
+	}
+
+	return xmlData, nil
+}
+
+func saveOutput(xmlData []byte, fileName string) error {
+	err := os.WriteFile(BaseDirectory+fileName, xmlData, 0644)
+	if err != nil {
+		return fmt.Errorf("Error writing XML to file: %w", err)
+	}
+
+	return nil
+}
+
+func loadSchema() (*xsd.Schema, error) {
+	xsdContent, err := os.ReadFile("../../test/schemas/invoiceData.xsd")
+	if err != nil {
+		return nil, fmt.Errorf("Error reading XSD file: %w", err)
+	}
+
+	schema, err := xsd.Parse(xsdContent)
+	if err != nil {
+		return nil, fmt.Errorf("Error parsing XSD: %w", err)
+	}
+
+	return schema, nil
 }

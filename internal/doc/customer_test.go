@@ -31,7 +31,7 @@ func TestNewCustomerInfo(t *testing.T) {
 					},
 				},
 			},
-			expectedStatus:  "OTHER",
+			expectedStatus:  "PRIVATE_PERSON",
 			expectedVatData: nil,
 			expectedName:    "John Doe",
 			expectedErr:     nil,
@@ -137,7 +137,7 @@ func TestNewCustomerInfo(t *testing.T) {
 			},
 			expectedStatus: "OTHER",
 			expectedVatData: &VatData{
-				ThirdStateTaxId: "US123456789",
+				ThirdStateTaxID: "US123456789",
 			},
 			expectedName: "Non-EU Company",
 			expectedErr:  nil,

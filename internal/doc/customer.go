@@ -6,6 +6,12 @@ import (
 	"github.com/invopop/gobl/tax"
 )
 
+const (
+	VatStatusPrivatePerson = "PRIVATE_PERSON"
+	VatStatusDomestic      = "DOMESTIC"
+	VatStatusOther         = "OTHER"
+)
+
 // CustomerInfo contains the customer data.
 type CustomerInfo struct {
 	CustomerVatStatus string   `xml:"customerVatStatus"` // PRIVATE_PERSON, DOMESTIC, OTHER
@@ -19,7 +25,7 @@ type CustomerInfo struct {
 type VatData struct {
 	CustomerTaxNumber  *CustomerTaxNumber `xml:"customerTaxNumber,omitempty"`
 	CommunityVATNumber string             `xml:"communityVATNumber,omitempty"`
-	ThirdStateTaxId    string             `xml:"thirdStateTaxId,omitempty"`
+	ThirdStateTaxID    string             `xml:"thirdStateTaxId,omitempty"`
 }
 
 // CustomerTaxNumber contains the domestic tax number or
@@ -33,26 +39,25 @@ type CustomerTaxNumber struct {
 }
 
 func newCustomerInfo(customer *org.Party) (*CustomerInfo, error) {
-
 	taxID := customer.TaxID
 	if taxID == nil {
 		return &CustomerInfo{
-			CustomerVatStatus: "OTHER",
+			CustomerVatStatus: VatStatusPrivatePerson,
 			CustomerName:      customer.Name,
 			CustomerAddress:   newAddress(customer.Addresses[0]),
 		}, nil
 	}
-	status := "OTHER"
+	status := VatStatusOther
 
 	if taxID.Country == l10n.HU.Tax() {
 		if taxID.Code.String() == "" || (taxID.Code.String()[0:1] == "8" && len(taxID.Code) == 10) {
 			return &CustomerInfo{
-				CustomerVatStatus: "PRIVATE_PERSON",
+				CustomerVatStatus: VatStatusPrivatePerson,
 				CustomerName:      customer.Name,
 				CustomerAddress:   newAddress(customer.Addresses[0]),
 			}, nil
 		}
-		status = "DOMESTIC"
+		status = VatStatusDomestic
 
 	}
 
@@ -70,7 +75,7 @@ func newCustomerInfo(customer *org.Party) (*CustomerInfo, error) {
 }
 
 func newVatData(customer *org.Party, status string) (*VatData, error) {
-	if status == "OTHER" {
+	if status == VatStatusOther {
 		return newOtherVatData(customer.TaxID), nil
 	}
 	return newDomesticVatData(customer)
@@ -83,7 +88,7 @@ func newOtherVatData(taxID *tax.Identity) *VatData {
 		}
 	}
 	return &VatData{
-		ThirdStateTaxId: taxID.String(),
+		ThirdStateTaxID: taxID.String(),
 	}
 }
 

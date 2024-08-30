@@ -47,18 +47,20 @@ type ManageInvoiceResponse struct {
 	TransactionId string    `xml:"transactionId"`
 }
 
-func (g *Client) ReportInvoice(invoice []byte) (string, error) {
+func (g *Client) ReportInvoice(invoice []byte, operationType string) (string, error) {
 	// We first fetch the exchange token
-	g.GetToken()
+	err := g.GetToken()
+	if err != nil {
+		return "", err
+	}
 	encodedInvoice := base64.StdEncoding.EncodeToString(invoice)
-	requestData := g.newManageInvoiceRequest(encodedInvoice)
+	requestData := g.newManageInvoiceRequest(encodedInvoice, operationType)
 	return g.postManageInvoiceRequest(requestData)
 }
 
-func (g *Client) newManageInvoiceRequest(invoice string) ManageInvoiceRequest {
+func (g *Client) newManageInvoiceRequest(invoice string, operationType string) ManageInvoiceRequest {
 	timestamp := time.Now().UTC()
 	requestID := NewRequestID(timestamp)
-	operationType := "CREATE" // For the moment, only CREATE is supported
 	return ManageInvoiceRequest{
 		Common:        "http://schemas.nav.gov.hu/NTCA/1.0/common",
 		Xmlns:         "http://schemas.nav.gov.hu/OSA/3.0/api",

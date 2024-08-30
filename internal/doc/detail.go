@@ -74,7 +74,7 @@ func newInvoiceDetail(inv *bill.Invoice) (*InvoiceDetail, error) {
 		}
 	}
 
-	rate, err := getInvoiceRate(inv)
+	rate, err := getExchangeRate(inv)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +92,7 @@ func newInvoiceDetail(inv *bill.Invoice) (*InvoiceDetail, error) {
 	}, nil
 }
 
-func getInvoiceRate(inv *bill.Invoice) (num.Amount, error) {
+func getExchangeRate(inv *bill.Invoice) (num.Amount, error) {
 	if inv.Currency == currency.HUF {
 		return num.MakeAmount(1, 0), nil
 	}

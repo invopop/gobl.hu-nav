@@ -22,7 +22,7 @@ func TestQueryTransactionStatus(t *testing.T) {
 		"ONLINE_SERVICE",
 		"1.0.0",
 		"TestDev",
-		"pablo.menendez@invopop.com",
+		"test@dev.com",
 	)
 	err := godotenv.Load("../../.env")
 	if err != nil {
@@ -39,7 +39,7 @@ func TestQueryTransactionStatus(t *testing.T) {
 
 	client := New(user, software, Environment("testing"))
 
-	result, err := client.GetStatus("4P0TNGVKJM2HV0C3")
+	result, err := client.GetStatus("4P2PEVFLLNKYTV3I")
 
 	// Assert the results
 	assert.NoError(t, err)

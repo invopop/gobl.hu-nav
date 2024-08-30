@@ -57,8 +57,8 @@ func TestNewInvoiceLines(t *testing.T) {
 	assert.Equal(t, 1, line.LineNumber)
 	assert.Equal(t, "Test Product", line.LineDescription)
 	assert.Equal(t, "PRODUCT", line.LineNatureIndicator)
-	assert.Equal(t, 2.0, line.Quantity)
-	assert.Equal(t, 100.00, line.UnitPrice)
+	assert.Equal(t, "2", line.Quantity)
+	assert.Equal(t, "100.00", line.UnitPrice)
 	assert.Equal(t, "PIECE", line.UnitOfMeasure)
 
 	// Check Product Codes
@@ -70,11 +70,11 @@ func TestNewInvoiceLines(t *testing.T) {
 	// Check Discount Data
 	assert.NotNil(t, line.LineDiscountData)
 	assert.Equal(t, "Seasonal Discount. ", line.LineDiscountData.DiscountDescription)
-	assert.Equal(t, 5.00, line.LineDiscountData.DiscountValue)
+	assert.Equal(t, "5.00", line.LineDiscountData.DiscountValue)
 
 	// Check VAT and Amounts
 	assert.NotNil(t, line.LineAmountsNormal)
-	assert.Equal(t, 195.00, line.LineAmountsNormal.LineNetAmountData.LineNetAmount)
+	assert.Equal(t, "195.00", line.LineAmountsNormal.LineNetAmountData.LineNetAmount)
 }
 
 func TestNewLine_SimplifiedInvoice(t *testing.T) {
@@ -111,11 +111,11 @@ func TestNewLine_SimplifiedInvoice(t *testing.T) {
 	// Check line data for a simplified invoice
 	assert.Equal(t, "Simplified Service", line.LineDescription)
 	assert.Equal(t, "SERVICE", line.LineNatureIndicator)
-	assert.Equal(t, 3.0, line.Quantity)
-	assert.Equal(t, 100.00, line.UnitPrice)
+	assert.Equal(t, "3", line.Quantity)
+	assert.Equal(t, "100.00", line.UnitPrice)
 	assert.Equal(t, "HOUR", line.UnitOfMeasure)
 
 	// Check VAT and Amounts
 	assert.NotNil(t, line.LineAmountsSimplified)
-	assert.Equal(t, 300.00, line.LineAmountsSimplified.LineGrossAmountSimplified)
+	assert.Equal(t, "300.00", line.LineAmountsSimplified.LineGrossAmountSimplified)
 }

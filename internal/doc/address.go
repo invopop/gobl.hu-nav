@@ -30,8 +30,8 @@ type DetailedAddress struct {
 
 // SimpleAddressType represents a simple address
 type SimpleAddress struct {
-	CountryCode             string `xml:"countryCode"`
-	Region                  string `xml:"region,omitempty"`
+	CountryCode             string `xml:"base:countryCode"`
+	Region                  string `xml:"base:region,omitempty"`
 	PostalCode              string `xml:"base:postalCode"`
 	City                    string `xml:"base:city"`
 	AdditionalAddressDetail string `xml:"base:additionalAddressDetail"`

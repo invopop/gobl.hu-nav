@@ -19,7 +19,7 @@ func TestNewVatRate(t *testing.T) {
 		{
 			name: "RateTotal with Percentage",
 			input: &tax.RateTotal{
-				Percent: num.NewPercentage(27, 4),
+				Percent: num.NewPercentage(27, 2),
 			},
 			info: &taxInfo{},
 			expected: &VatRate{
@@ -58,7 +58,7 @@ func TestNewVatRate(t *testing.T) {
 			name: "RateTotal with Out of Scope Code",
 			input: &tax.RateTotal{
 				Ext: tax.Extensions{
-					"hu-vat-out-of-scope-code": "ATK",
+					"hu-exemption-code": "ATK",
 				},
 			},
 			info: &taxInfo{},

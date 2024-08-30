@@ -112,7 +112,7 @@ var validUnits = map[org.Unit]string{
 func newInvoiceLines(inv *bill.Invoice) (*InvoiceLines, error) {
 	invoiceLines := &InvoiceLines{}
 	taxinfo := newTaxInfo(inv)
-	rate, err := getInvoiceRate(inv)
+	rate, err := getExchangeRate(inv)
 	if err != nil {
 		return nil, err
 	}
