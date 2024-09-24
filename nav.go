@@ -12,20 +12,20 @@ import (
 	"github.com/invopop/gobl/tax"
 )
 
-// Nav is the main struct for interacting with the NAV API
-type Nav struct {
+// Client is the main struct for interacting with the NAV API
+type Client struct {
 	gw  *gateways.Client
 	env gateways.Environment
 }
 
 // Option is a function used for the different options of the Nav client
 // For the moment, the only option is the environment (production or testing)
-type Option func(*Nav)
+type Option func(*Client)
 
 // NewNav creates a new Nav client
-func NewNav(user *gateways.User, software *gateways.Software, opts ...Option) *Nav {
+func NewNav(user *gateways.User, software *gateways.Software, opts ...Option) *Client {
 
-	c := new(Nav)
+	c := new(Client)
 
 	for _, opt := range opts {
 		opt(c)
@@ -38,31 +38,31 @@ func NewNav(user *gateways.User, software *gateways.Software, opts ...Option) *N
 
 // InProduction defines the connection to use the production environment.
 func InProduction() Option {
-	return func(c *Nav) {
+	return func(c *Client) {
 		c.env = gateways.EnvironmentProduction
 	}
 }
 
 // InTesting defines the connection to use the testing environment.
 func InTesting() Option {
-	return func(c *Nav) {
+	return func(c *Client) {
 		c.env = gateways.EnvironmentTesting
 	}
 }
 
 // FetchToken fetches the token from the NAV API
-func (n *Nav) FetchToken() error {
-	return n.gw.GetToken()
+func (c *Client) FetchToken() error {
+	return c.gw.GetToken()
 }
 
 // ReportInvoice reports an invoice to the NAV API
-func (n *Nav) ReportInvoice(invoice []byte, operationType string) (string, error) {
-	return n.gw.ReportInvoice(invoice, operationType)
+func (c *Client) ReportInvoice(invoice []byte, operationType string) (string, error) {
+	return c.gw.ReportInvoice(invoice, operationType)
 }
 
 // GetTransactionStatus gets the status of an invoice reporting transaction
-func (n *Nav) GetTransactionStatus(transactionID string) ([]*gateways.ProcessingResult, error) {
-	return n.gw.GetStatus(transactionID)
+func (c *Client) GetTransactionStatus(transactionID string) ([]*gateways.ProcessingResult, error) {
+	return c.gw.GetStatus(transactionID)
 }
 
 // NewSoftware creates a new Software with the information about the software developer
