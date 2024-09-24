@@ -109,5 +109,5 @@ func (g *Client) postManageInvoiceRequest(requestData ManageInvoiceRequest) (str
 		return "", err
 	}
 
-	return "", fmt.Errorf("error code: %s, message: %s", resp.Status(), generalErrorResponse.Result.ErrorCode)
+	return "", fmt.Errorf("error code: %s, message: %s", generalErrorResponse.Result.ErrorCode, generalErrorResponse.Result.Message)
 }
