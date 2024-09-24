@@ -1,0 +1,112 @@
+{
+    "$schema": "https://gobl.org/draft-0/envelope",
+    "head": {
+        "uuid": "9b62fd40-3b38-11ee-be56-0242ac120003",
+        "dig": {
+            "alg": "sha256",
+            "val": "fb3e81ee5d0964fa423dcfb62309a7a5c5150dc62cdd81427a68a2c85e893a66"
+        },
+        "draft": true
+    },
+    "doc": {
+        "$schema": "https://gobl.org/draft-0/bill/invoice",
+        "type": "standard",
+        "series": "SAMPLE",
+        "code": "010",
+        "issue_date": "2024-08-23",
+        "currency": "USD",
+        "exchange_rates": [
+            {
+                "from": "USD",
+                "to": "HUF",
+                "amount": "300"
+            }
+        ],
+        "supplier": {
+            "name": "Provide One Kft.",
+            "tax_id": {
+                "country": "HU",
+                "code": "12345678515"
+            },
+            "identities": [
+                {
+                    "code": "12354678415"
+                }
+            ],
+            "addresses": [
+                {
+                    "num": "16",
+                    "street": "Andrássy út",
+                    "locality": "Budapest",
+                    "code": "1061",
+                    "country": "HU"
+                }
+            ]
+        },
+        "customer": {
+            "name": "John Doe Company",
+            "tax_id": {
+                "country": "US",
+                "code": "87654321"
+            },
+            "addresses": [
+                {
+                    "num": "25",
+                    "street": "Váci utca",
+                    "locality": "Budapest",
+                    "code": "1052",
+                    "country": "HU"
+                }
+            ]
+        },
+        "lines": [
+            {
+                "i": 1,
+                "quantity": "20",
+                "item": {
+                    "name": "Fejlesztési szolgáltatások",
+                    "price": "100.00",
+                    "unit": "h"
+                },
+                "sum": "2000.00",
+                "taxes": [
+                    {
+                        "cat": "VAT",
+                        "rate": "standard",
+                        "percent": "27%"
+                    }
+                ],
+                "total": "2000.00"
+            }
+        ],
+        "payment": {
+            "instructions": {
+                "key": "credit-transfer"
+            }
+        },
+        "totals": {
+            "sum": "2000.00",
+            "total": "2000.00",
+            "taxes": {
+                "categories": [
+                    {
+                        "code": "VAT",
+                        "rates": [
+                            {
+                                "key": "standard",
+                                "base": "2000.00",
+                                "percent": "27%",
+                                "amount": "540.00"
+                            }
+                        ],
+                        "amount": "540.00"
+                    }
+                ],
+                "sum": "540.00"
+            },
+            "tax": "540.00",
+            "total_with_tax": "2540.00",
+            "payable": "2540.00"
+        }
+    }
+}
