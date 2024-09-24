@@ -6,7 +6,7 @@ require (
 	github.com/go-resty/resty/v2 v2.14.0
 	github.com/invopop/gobl v0.113.0
 	github.com/joho/godotenv v1.5.1
-	github.com/lestrrat-go/libxml2 v0.0.0-20240521004304-a75c203ac627
+	github.com/lestrrat-go/libxml2 v0.0.0-20240905100032-c934e3fcb9d3
 	github.com/spf13/cobra v1.8.1
 	github.com/stretchr/testify v1.8.4
 	golang.org/x/crypto v0.25.0
