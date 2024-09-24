@@ -28,7 +28,7 @@ func main() {
         panic(err)
     }
 
-    // Prepare the CFDI document
+    // Prepare the Nav document
     doc, err := nav.NewDocument(env)
     if err != nil {
         panic(err)
