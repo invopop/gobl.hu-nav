@@ -38,13 +38,13 @@ type ProcessingResults struct {
 // ProcessingResult contains the status of an invoice in a transaction
 // It also contains the messages from the technical and business validations
 type ProcessingResult struct {
-	Index                       string                       `xml:"index"`
-	BatchIndex                  string                       `xml:"batchIndex,omitempty"`
-	InvoiceStatus               string                       `xml:"invoiceStatus"`
-	TechnicalValidationMessages *TechnicalValidationMessages `xml:"technicalValidationMessages,omitempty"`
-	BusinessValidationMessages  *BusinessValidationMessages  `xml:"businessValidationMessages,omitempty"`
-	CompressedContentIndicator  bool                         `xml:"compressedContentIndicator"`
-	OriginalRequest             string                       `xml:"originalRequest,omitempty"`
+	Index                       string                         `xml:"index"`
+	BatchIndex                  string                         `xml:"batchIndex,omitempty"`
+	InvoiceStatus               string                         `xml:"invoiceStatus"`
+	TechnicalValidationMessages []*TechnicalValidationMessages `xml:"technicalValidationMessages,omitempty"`
+	BusinessValidationMessages  []*BusinessValidationMessages  `xml:"businessValidationMessages,omitempty"`
+	CompressedContentIndicator  bool                           `xml:"compressedContentIndicator"`
+	OriginalRequest             string                         `xml:"originalRequest,omitempty"`
 }
 
 // TechnicalValidationMessages are the result of the technical validation

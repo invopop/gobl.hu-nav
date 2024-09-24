@@ -39,7 +39,7 @@ func TestQueryTransactionStatus(t *testing.T) {
 
 	client := New(user, software, Environment("testing"))
 
-	result, err := client.GetStatus("4P2PEVFLLNKYTV3I")
+	result, err := client.GetStatus("4Q220PNVP43MOU5G")
 
 	// Assert the results
 	assert.NoError(t, err)
@@ -53,6 +53,7 @@ func TestQueryTransactionStatus(t *testing.T) {
 	}
 
 	fmt.Println(string(xmlData))
+	fmt.Println(result[0].BusinessValidationMessages[1].Message)
 
 	for _, r := range result {
 		assert.Equal(t, "1", r.Index)

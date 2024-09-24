@@ -61,7 +61,7 @@ import (
 func main() {
 
     // Software is the information regarding the system used to report the invoices
-    software := NewSoftware(
+    software := nav.NewSoftware(
 		tax.Identity{Country: l10n.ES.Tax(), Code: cbc.Code("B12345678")},
 		"Invopop",
 		"ONLINE_SERVICE",
@@ -71,43 +71,77 @@ func main() {
 	)
 
     // User is all the data obtained from the technical user that it is needed to report the invoices
-    user := NewUser(
+    user := nav.NewUser(
         "username",
         "password",
         "signature_key",
         "exchange_key",
-        "taxID"
+        "taxID",
     )
 
     // Create a new client with the user and software data and choose if you want to issue the invoices in the testing or production environment
-    navClient := NewNav(user, software, InTesting())
+    navClient := nav.NewNav(user, software, nav.InTesting())
 
     //We load the invoice
-    inv, err := os.ReadFile("test/data/out/output.xml")
+    invoice, err := os.ReadFile("test/data/out/output.xml")
 	if err != nil {
 		panic(err)
 	}
 
     // Report the invoice
-    transactionId, err := navClient.ReportInvoice(invoice)
+    transactionId, err := navClient.ReportInvoice(invoice, "CREATE")
     if err != nil {
         panic(err)
     }
 
-    // Once the invoice is reported, you can check the status
-    // If you check the status too early you would get a status of PROCESSING, which means that you should try again later to query the status
-    resultsList, err := navClient.GetTransactionStatus(transactionId)
-
-    //The output contains the status and a list of technical and business validation messages. To visualize the output, you can create a XML output:
-    out, err := nav.BytesIndent(resultsList)
-    if err != nil {
-        panic(err)
-    }
-
-    // TODO: do something with the output
+    // Keep the transaction ID for the status query
 }
 ```
 
+#### Invoice Status
+Once an invoice is reported, you can query the status of the invoice at any time.
+
+```go
+package main
+
+import (
+    "os"
+
+    "github.com/invopop/gobl"
+    nav "github.com/invopop/gobl.hu-nav"
+)
+
+func main(){
+
+    // To query the status of an invoice, you need the transaction ID, which is returned by the ReportInvoice function.
+    transactionId := "4Q220PNVP43MOU5G"
+
+    // Create a new client with the user and software data and choose if you want to issue the invoices in the testing or production environment
+    navClient := nav.NewNav(user, software, nav.InTesting())
+
+    // Query the status of the invoice
+    resultsList, err := navClient.GetTransactionStatus(transactionId)
+    if err != nil {
+        panic(err)
+    }
+
+    // resultsList is a list of ProcessingResult, which contains the status of each invoice in the transaction
+    // You can access the status of each invoice by iterating through the list
+    for _, r := range resultsList {
+        fmt.Println(r.InvoiceStatus)
+    }
+
+    // If you want to see the detailed messages, you can access the TechnicalValidationMessages and BusinessValidationMessages fields, that are also lists
+    for _, r := range resultsList {
+        for _, m := range r.TechnicalValidationMessages {
+            fmt.Println(m.Message)
+        }
+        for _, m := range r.BusinessValidationMessages {
+            fmt.Println(m.Message)
+        }
+    }
+}
+```
 ### Command Line
 #### Conversion
 
